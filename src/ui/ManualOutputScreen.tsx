@@ -1,5 +1,4 @@
 import { Box, Text } from "ink";
-import { useState } from "react";
 import type { ChannelData } from "../types/index.js";
 
 interface ManualOutputScreenProps {
@@ -8,8 +7,10 @@ interface ManualOutputScreenProps {
 }
 
 export function ManualOutputScreen({ outputs }: ManualOutputScreenProps) {
-  const [selectedChannel, _setSelectedChannel] = useState(0);
-  const [inputValue, _setInputValue] = useState("");
+  // TODO: Implement keyboard controls for manual output adjustment
+  // Will be implemented in a future enhancement
+  const selectedChannel = 0;
+  const inputValue = "";
 
   return (
     <Box flexDirection="column" padding={1}>

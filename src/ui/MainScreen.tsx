@@ -59,7 +59,7 @@ export function MainScreen({ inputs, outputs, displayMode, connected }: MainScre
       </Box>
 
       <Box marginTop={1}>
-        <Text dimColor>Press: [M]ain | [C]onfig | [O]utput | [R]aw/[L]Calibrated | [Q]uit</Text>
+        <Text dimColor>Press: [M]ain | [C]onfig | [O]utput | [R]aw | Ca[l]ibrated | [Q]uit</Text>
       </Box>
     </Box>
   );
