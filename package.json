@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "tsx src/index.tsx",
+    "demo": "tsx src/demo.tsx",
     "build": "tsc && chmod +x dist/index.js",
     "test": "vitest",
     "test:run": "vitest run",
