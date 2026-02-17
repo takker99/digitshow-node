@@ -25,48 +25,48 @@ const config = {
 
 // Mock service that simulates the ModbusService interface
 class MockModbusService {
-  private inputs: number[];
-  private outputs: number[];
-  private listeners: Array<(inputs: ChannelData[], outputs: ChannelData[]) => void>;
-  private connected: boolean;
+  #inputs: number[];
+  #outputs: number[];
+  #listeners: Array<(inputs: ChannelData[], outputs: ChannelData[]) => void>;
+  #connected: boolean;
 
   constructor() {
-    this.inputs = Array(16)
+    this.#inputs = Array(16)
       .fill(0)
       .map(() => Math.floor(Math.random() * 10000));
-    this.outputs = Array(8).fill(0);
-    this.listeners = [];
-    this.connected = true;
+    this.#outputs = Array(8).fill(0);
+    this.#listeners = [];
+    this.#connected = true;
   }
 
   async start(): Promise<void> {
     // Simulate polling with random data updates
     setInterval(() => {
       // Update with some random variations
-      this.inputs = this.inputs.map((val: number) => val + (Math.random() - 0.5) * 100);
-      this.notifyListeners();
+      this.#inputs = this.#inputs.map((val: number) => val + (Math.random() - 0.5) * 100);
+      this.#notifyListeners();
     }, 100);
   }
 
   async stop(): Promise<void> {
-    this.connected = false;
+    this.#connected = false;
   }
 
-  private notifyListeners(): void {
+  #notifyListeners(): void {
     const inputData = this.getInputData();
     const outputData = this.getOutputData();
-    for (const listener of this.listeners) {
+    for (const listener of this.#listeners) {
       listener(inputData, outputData);
     }
   }
 
   getInputData(): ChannelData[] {
-    return this.inputs.map((raw: number, index: number) => {
+    return this.#inputs.map((raw: number, index: number) => {
       const chip = index <= 7 ? "HX711" : "ADS1115";
       const key = `${index}` as keyof typeof config.inputs;
       const calibConfig = config.inputs?.[key];
       const calibrated = calibConfig?.enabled
-        ? this.applyCalibration(raw, calibConfig.factors as [number, number, number])
+        ? this.#applyCalibration(raw, calibConfig.factors as [number, number, number])
         : raw;
 
       return {
@@ -80,12 +80,12 @@ class MockModbusService {
   }
 
   getOutputData(): ChannelData[] {
-    return this.outputs.map((raw: number, index: number) => {
+    return this.#outputs.map((raw: number, index: number) => {
       const chip = "GP8403";
       const key = `${index}` as keyof typeof config.outputs;
       const calibConfig = config.outputs?.[key];
       const calibrated = calibConfig?.enabled
-        ? this.applyCalibration(raw, calibConfig.factors as [number, number, number])
+        ? this.#applyCalibration(raw, calibConfig.factors as [number, number, number])
         : raw;
 
       return {
@@ -98,23 +98,23 @@ class MockModbusService {
     });
   }
 
-  private applyCalibration(raw: number, factors: [number, number, number]): number {
+  #applyCalibration(raw: number, factors: [number, number, number]): number {
     const [a, b, c] = factors;
     return a + b * raw + c * raw * raw;
   }
 
   setOutput(index: number, value: number): void {
     if (index >= 0 && index < 8) {
-      this.outputs[index] = value;
+      this.#outputs[index] = value;
     }
   }
 
   onChange(listener: (inputs: ChannelData[], outputs: ChannelData[]) => void): void {
-    this.listeners.push(listener);
+    this.#listeners.push(listener);
   }
 
   getConnectionStatus(): boolean {
-    return this.connected;
+    return this.#connected;
   }
 }
 
