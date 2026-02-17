@@ -1,5 +1,5 @@
 import { Box, Text } from "ink";
-import type { ChannelData } from "../types/index.js";
+import type { ChannelData } from "../types/index.ts";
 
 interface ManualOutputScreenProps {
   outputs: ChannelData[];

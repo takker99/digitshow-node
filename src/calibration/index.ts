@@ -1,4 +1,4 @@
-import type { CalibrationFactor } from "../types/index.js";
+import type { CalibrationFactor } from "../types/index.ts";
 
 /**
  * Apply calibration using the formula: a + bx + cx²

@@ -1,5 +1,5 @@
 import ModbusRTU from "modbus-serial";
-import { int16ToNumber, numberToUint16 } from "../calibration/index.js";
+import { int16ToNumber, numberToUint16 } from "../calibration/index.ts";
 
 export class ModbusClient {
   private client: ModbusRTU;

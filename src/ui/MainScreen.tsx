@@ -1,5 +1,5 @@
 import { Box, Text } from "ink";
-import type { ChannelData, DisplayMode } from "../types/index.js";
+import type { ChannelData, DisplayMode } from "../types/index.ts";
 
 interface MainScreenProps {
   inputs: ChannelData[];

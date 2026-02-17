@@ -5,8 +5,8 @@ import { render } from "ink";
  * This creates a mock service that simulates sensor data
  */
 import { jsx as _jsx } from "react/jsx-runtime";
-import type { ChannelData } from "./types/index.js";
-import { App } from "./ui/App.js";
+import type { ChannelData } from "./types/index.ts";
+import { App } from "./ui/App.tsx";
 
 // Mock calibration config
 const config = {

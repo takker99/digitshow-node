@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { render } from "ink";
-import { ModbusService } from "./modbus/service.js";
-import type { CalibrationConfig } from "./types/index.js";
-import { App } from "./ui/App.js";
-import { loadCalibrationConfig } from "./utils/config.js";
+import { ModbusService } from "./modbus/service.ts";
+import type { CalibrationConfig } from "./types/index.ts";
+import { App } from "./ui/App.tsx";
+import { loadCalibrationConfig } from "./utils/config.ts";
 
 // Parse CLI arguments
 const args = process.argv.slice(2);

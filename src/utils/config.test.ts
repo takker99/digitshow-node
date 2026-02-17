@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getChipType, loadCalibrationConfig } from "../utils/config.js";
+import { getChipType, loadCalibrationConfig } from "../utils/config.ts";
 
 describe("Configuration Utils", () => {
   describe("getChipType", () => {

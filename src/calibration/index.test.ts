@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { applyCalibration, clamp, int16ToNumber, numberToUint16 } from "../calibration/index.js";
+import { applyCalibration, clamp, int16ToNumber, numberToUint16 } from "../calibration/index.ts";
 
 describe("Calibration", () => {
   describe("applyCalibration", () => {

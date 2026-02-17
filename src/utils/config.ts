@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import yaml from "js-yaml";
-import { type CalibrationConfig, CalibrationConfigSchema } from "../types/index.js";
+import { type CalibrationConfig, CalibrationConfigSchema } from "../types/index.ts";
 
 /**
  * Load calibration config from a file

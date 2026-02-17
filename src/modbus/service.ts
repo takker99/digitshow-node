@@ -1,7 +1,7 @@
-import { applyCalibration } from "../calibration/index.js";
-import type { CalibrationConfig, ChannelData } from "../types/index.js";
-import { getChipType } from "../utils/config.js";
-import { ModbusClient } from "./client.js";
+import { applyCalibration } from "../calibration/index.ts";
+import type { CalibrationConfig, ChannelData } from "../types/index.ts";
+import { getChipType } from "../utils/config.ts";
+import { ModbusClient } from "./client.ts";
 
 export class ModbusService {
   private client: ModbusClient;

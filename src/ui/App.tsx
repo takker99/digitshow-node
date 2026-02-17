@@ -1,10 +1,10 @@
 import { Box, useApp, useInput } from "ink";
 import { useEffect, useState } from "react";
-import type { ModbusService } from "../modbus/service.js";
-import type { CalibrationConfig, ChannelData, DisplayMode, Screen } from "../types/index.js";
-import { ConfigScreen } from "./ConfigScreen.js";
-import { MainScreen } from "./MainScreen.js";
-import { ManualOutputScreen } from "./ManualOutputScreen.js";
+import type { ModbusService } from "../modbus/service.ts";
+import type { CalibrationConfig, ChannelData, DisplayMode, Screen } from "../types/index.ts";
+import { ConfigScreen } from "./ConfigScreen.tsx";
+import { MainScreen } from "./MainScreen.tsx";
+import { ManualOutputScreen } from "./ManualOutputScreen.tsx";
 
 interface AppProps {
   service: ModbusService;
