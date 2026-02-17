@@ -1,7 +1,8 @@
 import { z } from "zod";
 
-// Calibration factor schema: [a, b, c] for a + bx + cx²
-export const CalibrationFactorSchema = z.tuple([z.number(), z.number(), z.number()]);
+// Calibration factor schema: variable-length array for polynomial coefficients
+// [a0, a1, a2, ...] represents a0 + a1*x + a2*x^2 + ...
+export const CalibrationFactorSchema = z.array(z.number()).min(1);
 
 // Calibration config for a single channel
 export const ChannelCalibrationSchema = z.object({

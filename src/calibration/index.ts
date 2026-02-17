@@ -1,14 +1,13 @@
 import type { CalibrationFactor } from "../types/index.ts";
 
 /**
- * Apply calibration using the formula: a + bx + cx²
+ * Apply polynomial calibration
  * @param raw Raw sensor value
- * @param factors Calibration factors [a, b, c]
+ * @param factors Calibration factors [a0, a1, a2, ...] for a0 + a1*x + a2*x^2 + ...
  * @returns Calibrated value
  */
 export function applyCalibration(raw: number, factors: CalibrationFactor): number {
-  const [a, b, c] = factors;
-  return a + b * raw + c * raw * raw;
+  return factors.reduce((sum, coeff, power) => sum + coeff * raw ** power, 0);
 }
 
 /**

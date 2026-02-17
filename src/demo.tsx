@@ -66,7 +66,7 @@ class MockModbusService {
       const key = `${index}` as keyof typeof config.inputs;
       const calibConfig = config.inputs?.[key];
       const calibrated = calibConfig?.enabled
-        ? this.#applyCalibration(raw, calibConfig.factors as [number, number, number])
+        ? this.#applyCalibration(raw, calibConfig.factors as number[])
         : raw;
 
       return {
@@ -85,7 +85,7 @@ class MockModbusService {
       const key = `${index}` as keyof typeof config.outputs;
       const calibConfig = config.outputs?.[key];
       const calibrated = calibConfig?.enabled
-        ? this.#applyCalibration(raw, calibConfig.factors as [number, number, number])
+        ? this.#applyCalibration(raw, calibConfig.factors as number[])
         : raw;
 
       return {
@@ -98,9 +98,8 @@ class MockModbusService {
     });
   }
 
-  #applyCalibration(raw: number, factors: [number, number, number]): number {
-    const [a, b, c] = factors;
-    return a + b * raw + c * raw * raw;
+  #applyCalibration(raw: number, factors: number[]): number {
+    return factors.reduce((sum, coeff, power) => sum + coeff * raw ** power, 0);
   }
 
   setOutput(index: number, value: number): void {

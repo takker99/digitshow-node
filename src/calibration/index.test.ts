@@ -3,24 +3,44 @@ import { applyCalibration, clamp, int16ToNumber, numberToUint16 } from "../calib
 
 describe("Calibration", () => {
   describe("applyCalibration", () => {
+    it("should apply constant calibration (a)", () => {
+      const factors = [10];
+      expect(applyCalibration(0, factors)).toBe(10);
+      expect(applyCalibration(5, factors)).toBe(10);
+      expect(applyCalibration(10, factors)).toBe(10);
+    });
+
     it("should apply linear calibration (a + bx)", () => {
-      const factors: [number, number, number] = [10, 2, 0];
+      const factors = [10, 2];
       expect(applyCalibration(0, factors)).toBe(10);
       expect(applyCalibration(5, factors)).toBe(20);
       expect(applyCalibration(10, factors)).toBe(30);
     });
 
     it("should apply quadratic calibration (a + bx + cx²)", () => {
-      const factors: [number, number, number] = [0, 0, 1];
+      const factors = [0, 0, 1];
       expect(applyCalibration(0, factors)).toBe(0);
       expect(applyCalibration(2, factors)).toBe(4);
       expect(applyCalibration(5, factors)).toBe(25);
     });
 
-    it("should apply full calibration formula", () => {
-      const factors: [number, number, number] = [1, 2, 3];
+    it("should apply full quadratic formula", () => {
+      const factors = [1, 2, 3];
       // 1 + 2*4 + 3*16 = 1 + 8 + 48 = 57
       expect(applyCalibration(4, factors)).toBe(57);
+    });
+
+    it("should apply cubic calibration (a + bx + cx² + dx³)", () => {
+      const factors = [0, 0, 0, 1];
+      // x^3
+      expect(applyCalibration(2, factors)).toBe(8);
+      expect(applyCalibration(3, factors)).toBe(27);
+    });
+
+    it("should apply high-degree polynomial", () => {
+      const factors = [1, 1, 1, 1, 1]; // 1 + x + x^2 + x^3 + x^4
+      // For x=2: 1 + 2 + 4 + 8 + 16 = 31
+      expect(applyCalibration(2, factors)).toBe(31);
     });
   });
 

@@ -12,29 +12,34 @@
     },
     "2": {
       "name": "Temperature Sensor",
-      "factors": [-40, 0.01, 0],
+      "factors": [-40, 0.01],
+      "enabled": true
+    },
+    "3": {
+      "name": "Advanced Sensor",
+      "factors": [1, 0.5, 0.001, 0.00001],
       "enabled": true
     },
     "8": {
       "name": "pH Sensor",
-      "factors": [0, 0.001, 0],
+      "factors": [0, 0.001],
       "enabled": true
     },
     "9": {
       "name": "EC Sensor",
-      "factors": [0, 0.01, 0],
+      "factors": [0, 0.01],
       "enabled": true
     }
   },
   "outputs": {
     "0": {
       "name": "Water Valve",
-      "factors": [0, 1, 0],
+      "factors": [0, 1],
       "enabled": false
     },
     "1": {
       "name": "Nutrient Pump",
-      "factors": [0, 1, 0],
+      "factors": [0, 1],
       "enabled": false
     }
   }
