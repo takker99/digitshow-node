@@ -66,32 +66,38 @@ Create a calibration config file (YAML or JSON):
 inputs:
   "0":
     name: "Moisture Sensor 1"
-    factors: [0, 0.1, 0.0001]  # a + bx + cx²
+    factors: [0, 0.1, 0.0001]  # Quadratic: 0 + 0.1*x + 0.0001*x²
     enabled: true
   "2":
     name: "Temperature"
-    factors: [-40, 0.01, 0]
+    factors: [-40, 0.01]  # Linear: -40 + 0.01*x
+    enabled: true
+  "3":
+    name: "Advanced Sensor"
+    factors: [1, 0.5, 0.001, 0.00001]  # Cubic polynomial
     enabled: true
 
 outputs:
   "0":
     name: "Water Valve"
-    factors: [0, 1, 0]
+    factors: [0, 1]  # Identity: 0 + 1*x
     enabled: false
 ```
 
 ### Calibration Formula
 
-The calibration uses a quadratic equation: **a + bx + cx²**
+The calibration uses **polynomial of any degree**: **a₀ + a₁x + a₂x² + a₃x³ + ...**
 
 Where:
 - `x` is the raw sensor value
-- `[a, b, c]` are the calibration factors
+- `[a₀, a₁, a₂, ...]` are the calibration factors (variable length)
 
 Examples:
-- Linear: `[0, 1, 0]` = identity (no change)
-- Linear with offset: `[10, 2, 0]` = 10 + 2x
+- Constant: `[5]` = 5
+- Linear: `[0, 1]` = x (identity)
+- Linear with offset: `[10, 2]` = 10 + 2x
 - Quadratic: `[0, 0, 1]` = x²
+- Cubic: `[1, 0.5, 0.001, 0.00001]` = 1 + 0.5x + 0.001x² + 0.00001x³
 
 ## Channel Mapping
 
