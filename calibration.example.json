@@ -1,0 +1,41 @@
+{
+  "inputs": {
+    "0": {
+      "name": "Moisture Sensor 1",
+      "factors": [0, 0.1, 0.0001],
+      "enabled": true
+    },
+    "1": {
+      "name": "Moisture Sensor 2",
+      "factors": [0, 0.1, 0.0001],
+      "enabled": true
+    },
+    "2": {
+      "name": "Temperature Sensor",
+      "factors": [-40, 0.01, 0],
+      "enabled": true
+    },
+    "8": {
+      "name": "pH Sensor",
+      "factors": [0, 0.001, 0],
+      "enabled": true
+    },
+    "9": {
+      "name": "EC Sensor",
+      "factors": [0, 0.01, 0],
+      "enabled": true
+    }
+  },
+  "outputs": {
+    "0": {
+      "name": "Water Valve",
+      "factors": [0, 1, 0],
+      "enabled": false
+    },
+    "1": {
+      "name": "Nutrient Pump",
+      "factors": [0, 1, 0],
+      "enabled": false
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "name": "digitshow-node",
+  "version": "1.0.0",
+  "description": "Node.js Modbus RTU CLI for soil testing",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "digitshow": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsx src/index.tsx",
+    "build": "tsc && chmod +x dist/index.js",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "check": "biome check --write ."
+  },
+  "keywords": [
+    "modbus",
+    "rtu",
+    "soil",
+    "testing",
+    "cli"
+  ],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.29.3",
+  "dependencies": {
+    "ink": "^6.7.0",
+    "js-yaml": "^4.1.1",
+    "modbus-serial": "^8.0.23",
+    "react": "^19.2.4",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.2",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^25.2.3",
+    "@types/react": "^19.2.14",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}
