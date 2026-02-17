@@ -6,6 +6,9 @@ export class ModbusClient {
   #port: string;
   #slaveId: number;
   #isConnected = false;
+  #reconnectAttempts = 0;
+  #maxReconnectAttempts = 10;
+  #reconnectDelay = 1000; // ms
 
   constructor(port: string, slaveId = 1) {
     this.#client = new ModbusRTU();
@@ -14,12 +17,35 @@ export class ModbusClient {
   }
 
   async connect(): Promise<void> {
-    await this.#client.connectRTUBuffered(this.#port, {
-      baudRate: 38400,
-    });
-    this.#client.setID(this.#slaveId);
-    this.#client.setTimeout(1000);
-    this.#isConnected = true;
+    while (!this.#isConnected && this.#reconnectAttempts < this.#maxReconnectAttempts) {
+      try {
+        await this.#client.connectRTUBuffered(this.#port, {
+          baudRate: 38400,
+        });
+        this.#client.setID(this.#slaveId);
+        this.#client.setTimeout(1000);
+        this.#isConnected = true;
+        this.#reconnectAttempts = 0;
+        console.log(`Connected to Modbus device on ${this.#port}`);
+      } catch (error) {
+        this.#reconnectAttempts++;
+        if (this.#reconnectAttempts >= this.#maxReconnectAttempts) {
+          throw new Error(
+            `Failed to connect after ${this.#maxReconnectAttempts} attempts: ${error}`,
+          );
+        }
+        console.log(
+          `Connection attempt ${this.#reconnectAttempts}/${this.#maxReconnectAttempts} failed, retrying in ${this.#reconnectDelay}ms...`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, this.#reconnectDelay));
+      }
+    }
+  }
+
+  async reconnect(): Promise<void> {
+    this.#isConnected = false;
+    await this.disconnect();
+    await this.connect();
   }
 
   async disconnect(): Promise<void> {
@@ -38,9 +64,15 @@ export class ModbusClient {
       throw new Error("Modbus client not connected");
     }
 
-    const result = await this.#client.readHoldingRegisters(0, 16);
-    // Convert to signed int16
-    return result.data.map((value) => int16ToNumber(value));
+    try {
+      const result = await this.#client.readHoldingRegisters(0, 16);
+      // Convert to signed int16
+      return result.data.map((value) => int16ToNumber(value));
+    } catch (error) {
+      // Connection lost, mark as disconnected
+      this.#isConnected = false;
+      throw error;
+    }
   }
 
   /**
@@ -56,9 +88,15 @@ export class ModbusClient {
       throw new Error("Must provide exactly 8 output values");
     }
 
-    // Clamp and convert to uint16
-    const clampedValues = values.map((v) => numberToUint16(v));
-    await this.#client.writeRegisters(16, clampedValues);
+    try {
+      // Clamp and convert to uint16
+      const clampedValues = values.map((v) => numberToUint16(v));
+      await this.#client.writeRegisters(16, clampedValues);
+    } catch (error) {
+      // Connection lost, mark as disconnected
+      this.#isConnected = false;
+      throw error;
+    }
   }
 
   getConnectionStatus(): boolean {

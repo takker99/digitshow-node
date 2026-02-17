@@ -11,6 +11,7 @@ export class ModbusService {
   #previousOutputs: number[] = Array(8).fill(0);
   #intervalId?: NodeJS.Timeout;
   #listeners: Array<(inputs: ChannelData[], outputs: ChannelData[]) => void> = [];
+  #reconnecting = false;
 
   constructor(port: string, config: CalibrationConfig, slaveId = 1) {
     this.#client = new ModbusClient(port, slaveId);
@@ -47,8 +48,29 @@ export class ModbusService {
 
       // Notify listeners
       this.#notifyListeners();
+
+      // Reset reconnecting flag on successful poll
+      if (this.#reconnecting) {
+        this.#reconnecting = false;
+        console.log("Reconnected successfully");
+      }
     } catch (error) {
       console.error("Polling error:", error);
+
+      // Attempt to reconnect if not already reconnecting
+      if (!this.#reconnecting && !this.#client.getConnectionStatus()) {
+        this.#reconnecting = true;
+        console.log("Connection lost, attempting to reconnect...");
+
+        try {
+          await this.#client.reconnect();
+          console.log("Reconnection successful");
+          this.#reconnecting = false;
+        } catch (reconnectError) {
+          console.error("Reconnection failed:", reconnectError);
+          // Will retry on next poll cycle
+        }
+      }
     }
   }
 
