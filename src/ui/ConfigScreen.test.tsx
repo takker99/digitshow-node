@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
 import { render } from "ink-testing-library";
-import { ConfigScreen } from "./ConfigScreen.tsx";
+import { describe, expect, it } from "vitest";
 import type { CalibrationConfig } from "../types/index.ts";
+import { ConfigScreen } from "./ConfigScreen.tsx";
 
 describe("ConfigScreen", () => {
   it("should render config screen with calibrations", () => {

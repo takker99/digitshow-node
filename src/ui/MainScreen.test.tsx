@@ -1,7 +1,7 @@
-import { describe, expect, it } from "vitest";
 import { render } from "ink-testing-library";
-import { MainScreen } from "./MainScreen.tsx";
+import { describe, expect, it } from "vitest";
 import type { ChannelData } from "../types/index.ts";
+import { MainScreen } from "./MainScreen.tsx";
 
 describe("MainScreen", () => {
   const mockInputs: ChannelData[] = [
@@ -15,12 +15,7 @@ describe("MainScreen", () => {
 
   it("should render main screen with connected status", () => {
     const { lastFrame } = render(
-      <MainScreen
-        inputs={mockInputs}
-        outputs={mockOutputs}
-        displayMode="raw"
-        connected={true}
-      />,
+      <MainScreen inputs={mockInputs} outputs={mockOutputs} displayMode="raw" connected={true} />,
     );
 
     const output = lastFrame();
@@ -31,12 +26,7 @@ describe("MainScreen", () => {
 
   it("should show disconnected status", () => {
     const { lastFrame } = render(
-      <MainScreen
-        inputs={mockInputs}
-        outputs={mockOutputs}
-        displayMode="raw"
-        connected={false}
-      />,
+      <MainScreen inputs={mockInputs} outputs={mockOutputs} displayMode="raw" connected={false} />,
     );
 
     expect(lastFrame()).toContain("○ Disconnected");
@@ -44,12 +34,7 @@ describe("MainScreen", () => {
 
   it("should display raw values in raw mode", () => {
     const { lastFrame } = render(
-      <MainScreen
-        inputs={mockInputs}
-        outputs={mockOutputs}
-        displayMode="raw"
-        connected={true}
-      />,
+      <MainScreen inputs={mockInputs} outputs={mockOutputs} displayMode="raw" connected={true} />,
     );
 
     const output = lastFrame();
@@ -76,12 +61,7 @@ describe("MainScreen", () => {
 
   it("should display channel names when provided", () => {
     const { lastFrame } = render(
-      <MainScreen
-        inputs={mockInputs}
-        outputs={mockOutputs}
-        displayMode="raw"
-        connected={true}
-      />,
+      <MainScreen inputs={mockInputs} outputs={mockOutputs} displayMode="raw" connected={true} />,
     );
 
     const output = lastFrame();
@@ -91,12 +71,7 @@ describe("MainScreen", () => {
 
   it("should display chip types", () => {
     const { lastFrame } = render(
-      <MainScreen
-        inputs={mockInputs}
-        outputs={mockOutputs}
-        displayMode="raw"
-        connected={true}
-      />,
+      <MainScreen inputs={mockInputs} outputs={mockOutputs} displayMode="raw" connected={true} />,
     );
 
     const output = lastFrame();
@@ -106,12 +81,7 @@ describe("MainScreen", () => {
 
   it("should show keyboard controls", () => {
     const { lastFrame } = render(
-      <MainScreen
-        inputs={mockInputs}
-        outputs={mockOutputs}
-        displayMode="raw"
-        connected={true}
-      />,
+      <MainScreen inputs={mockInputs} outputs={mockOutputs} displayMode="raw" connected={true} />,
     );
 
     const output = lastFrame();
