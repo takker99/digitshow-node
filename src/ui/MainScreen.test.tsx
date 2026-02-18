@@ -38,9 +38,9 @@ describe("MainScreen", () => {
     );
 
     const output = lastFrame();
-    expect(output).toContain("1000.00");
-    expect(output).toContain("2000.00");
-    expect(output).toContain("500.00");
+    expect(output).toContain("1000");
+    expect(output).toContain("2000");
+    expect(output).toContain("500");
   });
 
   it("should display calibrated values in calibrated mode", () => {
@@ -54,9 +54,9 @@ describe("MainScreen", () => {
     );
 
     const output = lastFrame();
-    expect(output).toContain("100.00");
-    expect(output).toContain("200.00");
-    expect(output).toContain("50.00");
+    expect(output).toContain("100.0000");
+    expect(output).toContain("200.0000");
+    expect(output).toContain("50.0000");
   });
 
   it("should display channel names when provided", () => {
@@ -75,8 +75,8 @@ describe("MainScreen", () => {
     );
 
     const output = lastFrame();
-    expect(output).toContain("[HX711]");
-    expect(output).toContain("[GP8403]");
+    expect(output).toContain("HX711");
+    expect(output).toContain("GP8403");
   });
 
   it("should show keyboard controls", () => {
@@ -89,5 +89,20 @@ describe("MainScreen", () => {
     expect(output).toContain("[C]onfig");
     expect(output).toContain("[O]utput");
     expect(output).toContain("[Q]uit");
+  });
+
+  it("should display ADS1115 chips when present", () => {
+    const mixedInputs: ChannelData[] = [
+      { index: 0, raw: 1000, calibrated: 100, chip: "HX711", name: "Sensor 1" },
+      { index: 1, raw: 2000, calibrated: 200, chip: "ADS1115", name: "Sensor 2" },
+    ];
+
+    const { lastFrame } = render(
+      <MainScreen inputs={mixedInputs} outputs={mockOutputs} displayMode="raw" connected={true} />,
+    );
+
+    const output = lastFrame();
+    expect(output).toContain("HX711");
+    expect(output).toContain("ADS1115");
   });
 });
