@@ -9,7 +9,7 @@ echo "PreToolUse triggered: toolName=$TOOL_NAME" >> logs/session.log
 if [ "$TOOL_NAME" = "report_progress" ]; then
   cd "$CWD" || exit 1
   echo "=== Pre-commit: running build and tests ===" >> logs/session.log
-  pnpm build && pnpm test:run
+  pnpm test
   EXIT_CODE=$?
   if [ $EXIT_CODE -ne 0 ]; then
     echo "Build or tests failed. Fix errors before committing." >> logs/session.log
@@ -23,7 +23,7 @@ fi
 if echo "$TOOL_NAME" | grep -qE "mcp.*git.*commit"; then
   cd "$CWD" || exit 1
   echo "=== Pre-commit: running build and tests (MCP git commit) ===" >> logs/session.log
-  pnpm build && pnpm test:run
+  pnpm test
   EXIT_CODE=$?
   if [ $EXIT_CODE -ne 0 ]; then
     echo "Build or tests failed. Fix errors before committing." >> logs/session.log
@@ -41,7 +41,7 @@ if [ "$TOOL_NAME" = "bash" ] || [ "$TOOL_NAME" = "runInTerminal" ]; then
   fi
   cd "$CWD" || exit 1
   echo "=== Pre-commit: running build and tests ===" >> logs/session.log
-  pnpm build && pnpm test:run
+  pnpm test
   EXIT_CODE=$?
   if [ $EXIT_CODE -ne 0 ]; then
     echo "Build or tests failed. Fix errors before committing." >> logs/session.log

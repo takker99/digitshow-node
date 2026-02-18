@@ -37,8 +37,7 @@
   "name": "digitshow-node",
   "packageManager": "pnpm@10.29.3",
   "scripts": {
-    "build": "tsgo --noEmit",
-    "check": "biome check --write .",
+    "check": "biome check --write . && tsgo --noEmit",
     "demo": "tsx src/demo.tsx",
     "dev": "tsx --watch src/index.tsx --port /dev/ttyACM0 --config ds1.yaml",
     "start": "tsx src/index.tsx --port /dev/ttyACM0 --config ds1.yaml",
