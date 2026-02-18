@@ -11,10 +11,9 @@
     "dev": "tsx --watch src/index.tsx --port /dev/ttyACM0 --config ds1.yaml",
     "start": "tsx src/index.tsx --port /dev/ttyACM0 --config ds1.yaml",
     "demo": "tsx src/demo.tsx",
-    "build": "tsc --noEmit",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
+    "build": "tsgo --noEmit",
+    "test:watch": "vitest",
+    "test": "vitest run --coverage",
     "lint": "biome check .",
     "format": "biome format --write .",
     "check": "biome check --write ."
@@ -41,10 +40,10 @@
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.2.3",
     "@types/react": "^19.2.14",
+    "@typescript/native-preview": "7.0.0-dev.20260217.1",
     "@vitest/coverage-v8": "^4.0.18",
     "ink-testing-library": "^4.0.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   }
 }
