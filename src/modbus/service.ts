@@ -21,7 +21,7 @@ export class ModbusService {
   async start(): Promise<void> {
     await this.#client.connect();
 
-    // Poll FC03 every 100ms
+    // Poll FC04 every 100ms
     this.#intervalId = setInterval(() => {
       this.#poll();
     }, 100);
@@ -37,7 +37,7 @@ export class ModbusService {
 
   async #poll(): Promise<void> {
     try {
-      // Read inputs (FC03)
+      // Read inputs (FC04)
       this.#inputs = await this.#client.readInputs();
 
       // Check if outputs changed and write if needed (FC16)

@@ -56,7 +56,7 @@ export class ModbusClient {
   }
 
   /**
-   * Read holding registers (FC03)
+   * Read input registers (FC04)
    * Reads 16 int16 values
    */
   async readInputs(): Promise<number[]> {
@@ -65,7 +65,7 @@ export class ModbusClient {
     }
 
     try {
-      const result = await this.#client.readHoldingRegisters(0, 16);
+      const result = await this.#client.readInputRegisters(0, 16);
       // Convert to signed int16
       return result.data.map((value) => int16ToNumber(value));
     } catch (error) {
@@ -91,7 +91,7 @@ export class ModbusClient {
     try {
       // Clamp and convert to uint16
       const clampedValues = values.map((v) => numberToUint16(v));
-      await this.#client.writeRegisters(16, clampedValues);
+      await this.#client.writeRegisters(0, clampedValues);
     } catch (error) {
       // Connection lost, mark as disconnected
       this.#isConnected = false;

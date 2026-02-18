@@ -8,13 +8,13 @@ Node.js Modbus RTU CLI for soil testing - A real-time monitoring and control app
 ## Features
 
 - **Real-time I/O Monitoring**: Display sensor inputs and control outputs with 100ms polling interval
-- **Modbus RTU Communication**: 
-  - FC03 (Read Holding Registers): int16×16 every 100ms
+- **Modbus RTU Communication**:
+  - FC04 (Read Input Registers): int16×16 every 100ms
   - FC16 (Write Multiple Registers): uint16×8 on change, clamped 0-10000
   - Baud rate: 38400
   - **Automatic reconnection** on device disconnect
   - **Connection retry** with exponential backoff
-- **Polynomial Calibration System**: 
+- **Polynomial Calibration System**:
   - Load calibration configs from YAML/JSON with schema validation
   - **Variable-length polynomial**: [a₀, a₁, a₂, ...] for a₀ + a₁x + a₁x² + ...
   - Support for any polynomial degree (linear, quadratic, cubic, etc.)

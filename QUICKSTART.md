@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - pnpm (will be installed automatically if using npm)
 - Serial port access (for hardware connection)
 
@@ -49,7 +49,7 @@ pnpm demo
 
 ### Navigation
 - `M` - Switch to Main screen
-- `C` - Switch to Config screen  
+- `C` - Switch to Config screen
 - `O` - Switch to Manual Output screen
 - `Q` - Quit application
 
@@ -154,7 +154,7 @@ Check the schema in `src/types/index.ts` for reference.
 
 - **Baud Rate**: 38400
 - **Modbus Functions**:
-  - FC03 (Read Holding Registers): Reads 16 int16 values every 100ms
+  - FC04 (Read Input Registers): Reads 16 int16 values every 100ms
   - FC16 (Write Multiple Registers): Writes 8 uint16 values (clamped 0-10000)
 - **Polling Interval**: 100ms
 - **Output Range**: 0-10000 (automatically clamped)
