@@ -10,8 +10,10 @@ interface MainScreenProps {
 
 export function MainScreen({ inputs, outputs, displayMode, connected }: MainScreenProps) {
   const getValue = (data: ChannelData) => {
-    const value = displayMode === "raw" ? data.raw : data.calibrated;
-    return value.toFixed(2);
+    if (displayMode === "raw") {
+      return data.raw.toFixed(0);
+    }
+    return data.calibrated.toFixed(4);
   };
 
   const normalizeChip = (chip: string) => chip.toLowerCase();
