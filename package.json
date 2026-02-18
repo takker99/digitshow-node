@@ -8,8 +8,8 @@
     "digitshow": "./dist/index.js"
   },
   "scripts": {
-    "dev": "tsx src/index.tsx --port /dev/ttyACM0",
-    "start": "tsx src/index.tsx",
+    "dev": "tsx --watch src/index.tsx --port /dev/ttyACM0 --config ds1.yaml",
+    "start": "tsx src/index.tsx --port /dev/ttyACM0 --config ds1.yaml",
     "demo": "tsx src/demo.tsx",
     "build": "tsc --noEmit",
     "test": "vitest",
