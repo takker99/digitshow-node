@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/post-tool-use-format.sh",
+        "timeout": 30
+      }
+    ],
+    "PreToolUse": [
+      {
+        "type": "command",
+        "command": ".github/hooks/scripts/pre-tool-use-commit.sh",
+        "timeout": 120
+      }
+    ]
+  }
+}
