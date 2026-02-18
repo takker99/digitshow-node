@@ -7,6 +7,21 @@ import { App } from "./App.tsx";
 
 const wait = () => new Promise((resolve) => setTimeout(resolve, 10));
 
+// Wait for condition with timeout
+const waitFor = async (
+  condition: () => boolean,
+  maxAttempts = 100,
+  interval = 10,
+): Promise<void> => {
+  for (let i = 0; i < maxAttempts; i++) {
+    if (condition()) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, interval));
+  }
+  throw new Error(`Timeout waiting for condition after ${maxAttempts * interval}ms`);
+};
+
 function createChannelData(
   index: number,
   raw: number,
@@ -180,14 +195,16 @@ describe("App", () => {
     );
 
     stdin.write("o");
-    await wait();
+    await waitFor(() => (lastFrame() ?? "").includes("Manual Output Control"), 100, 10);
 
     stdin.write("1");
-    await wait();
+    await waitFor(() => (lastFrame() ?? "").includes("Input Value: 1"), 100, 10);
+
     stdin.write("2");
-    await wait();
+    await waitFor(() => (lastFrame() ?? "").includes("Input Value: 12"), 100, 10);
+
     stdin.write("3");
-    await wait();
+    await waitFor(() => (lastFrame() ?? "").includes("Input Value: 123"), 100, 10);
 
     const output = lastFrame();
     expect(output).toContain("Manual Output Control");
