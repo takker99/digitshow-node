@@ -1,5 +1,5 @@
-import { render } from "ink-testing-library";
 import { describe, expect, it, vi } from "vitest";
+import { render } from "../test-utils/ink-testing-library.ts";
 import type { ChannelData } from "../types/index.ts";
 import { ManualOutputScreen } from "./ManualOutputScreen.tsx";
 
