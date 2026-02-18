@@ -100,7 +100,8 @@ export function ManualOutputScreen({ outputs, onSetOutput }: ManualOutputScreenP
         {outputs.map((output, idx) => (
           <Box key={output.index}>
             <Text color={idx === selectedChannel ? "green" : "gray"}>
-              {idx === selectedChannel ? "▶ " : "  "}OUT{output.index}
+              {idx === selectedChannel ? "▶ " : "  "}
+              {output.channelId}
             </Text>
             <Text> [{output.chip}] </Text>
             <Text bold color="yellow">
@@ -121,7 +122,7 @@ export function ManualOutputScreen({ outputs, onSetOutput }: ManualOutputScreenP
         <Text>
           Selected:{" "}
           <Text bold color="green">
-            OUT{selectedChannel}
+            {outputs[selectedChannel]?.channelId}
           </Text>{" "}
           | Input Value:{" "}
           <Text bold color="yellow">

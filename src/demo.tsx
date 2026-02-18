@@ -5,21 +5,21 @@ import { render } from "ink";
  * This creates a mock service that simulates sensor data
  */
 import { jsx as _jsx } from "react/jsx-runtime";
-import type { ChannelData } from "./types/index.ts";
+import type { CalibrationConfig, ChannelData } from "./types/index.ts";
 import { App } from "./ui/App.tsx";
 
 // Mock calibration config
-const config = {
+const config: CalibrationConfig = {
   inputs: {
-    "0": { factors: [0, 0.1, 0.0001], name: "Moisture 1" },
-    "1": { factors: [0, 0.1, 0.0001], name: "Moisture 2" },
-    "2": { factors: [-40, 0.01, 0], name: "Temperature" },
-    "8": { factors: [0, 0.001, 0], name: "pH Sensor" },
-    "9": { factors: [0, 0.01, 0], name: "EC Sensor" },
+    AI00: { factors: [0, 0.1, 0.0001], name: "Moisture 1" },
+    AI01: { factors: [0, 0.1, 0.0001], name: "Moisture 2" },
+    AI02: { factors: [-40, 0.01, 0], name: "Temperature" },
+    AI08: { factors: [0, 0.001, 0], name: "pH Sensor" },
+    AI09: { factors: [0, 0.01, 0], name: "EC Sensor" },
   },
   outputs: {
-    "0": { factors: [0, 1, 0], name: "Water Valve" },
-    "1": { factors: [0, 1, 0], name: "Nutrient Pump" },
+    AO00: { factors: [0, 1, 0], name: "Water Valve" },
+    AO01: { factors: [0, 1, 0], name: "Nutrient Pump" },
   },
 };
 
@@ -63,14 +63,15 @@ class MockModbusService {
   getInputData(): ChannelData[] {
     return this.#inputs.map((raw: number, index: number) => {
       const chip = index <= 7 ? "HX711" : "ADS1115";
-      const key = `${index}` as keyof typeof config.inputs;
-      const calibConfig = config.inputs?.[key];
+      const channelId = `AI${index.toString().padStart(2, "0")}`;
+      const calibConfig = config.inputs?.[channelId];
       const calibrated = calibConfig
         ? this.#applyCalibration(raw, calibConfig.factors as number[])
         : raw;
 
       return {
         calibrated,
+        channelId,
         chip,
         index,
         name: calibConfig?.name,
@@ -82,6 +83,7 @@ class MockModbusService {
   getOutputData(): ChannelData[] {
     return this.#outputs.map((raw: number, index: number) => {
       const chip = "GP8403";
+      const channelId = `AO${index.toString().padStart(2, "0")}`;
       const key = `${index}` as keyof typeof config.outputs;
       const calibConfig = config.outputs?.[key];
       const calibrated = calibConfig
@@ -90,6 +92,7 @@ class MockModbusService {
 
       return {
         calibrated,
+        channelId,
         chip,
         index,
         name: calibConfig?.name,

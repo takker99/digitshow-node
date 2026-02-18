@@ -23,16 +23,16 @@ describe("Configuration Utils", () => {
     it("should load YAML config", () => {
       const config = loadCalibrationConfig("calibration.example.yaml");
       expect(config.inputs).toBeDefined();
-      expect(config.inputs?.["0"]).toBeDefined();
-      expect(config.inputs?.["0"]?.name).toBe("Moisture Sensor 1");
-      expect(config.inputs?.["0"]?.factors).toEqual([0, 0.1, 0.0001]);
+      expect(config.inputs?.AI00).toBeDefined();
+      expect(config.inputs?.AI00?.name).toBe("Moisture Sensor 1");
+      expect(config.inputs?.AI00?.factors).toEqual([0, 0.1, 0.0001]);
     });
 
     it("should load JSON config", () => {
       const config = loadCalibrationConfig("calibration.example.json");
       expect(config.inputs).toBeDefined();
-      expect(config.inputs?.["0"]).toBeDefined();
-      expect(config.inputs?.["0"]?.name).toBe("Moisture Sensor 1");
+      expect(config.inputs?.AI00).toBeDefined();
+      expect(config.inputs?.AI00?.name).toBe("Moisture Sensor 1");
     });
 
     it("should validate config schema", () => {

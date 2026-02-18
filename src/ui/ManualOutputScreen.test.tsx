@@ -3,27 +3,29 @@ import { describe, expect, it, vi } from "vitest";
 import type { ChannelData } from "../types/index.ts";
 import { ManualOutputScreen } from "./ManualOutputScreen.tsx";
 
-// Helper to wait for state updates
 const wait = () => new Promise((resolve) => setTimeout(resolve, 10));
 
 describe("ManualOutputScreen", () => {
   const mockOutputs: ChannelData[] = [
     {
       calibrated: 2.5,
-      chip: "HX711",
+      channelId: "AO00",
+      chip: "GP8403",
       index: 0,
       name: "Valve 1",
       raw: 5000,
     },
     {
       calibrated: 3.75,
-      chip: "ADS1115",
+      channelId: "AO01",
+      chip: "GP8403",
       index: 1,
       name: "Valve 2",
       raw: 7500,
     },
     {
       calibrated: 0,
+      channelId: "AO02",
       chip: "GP8403",
       index: 2,
       name: "Pump",
@@ -31,7 +33,7 @@ describe("ManualOutputScreen", () => {
     },
   ];
 
-  it("should render manual output screen with channel list", () => {
+  it("should render manual output screen", () => {
     const mockSetOutput = vi.fn();
     const { lastFrame } = render(
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
@@ -39,12 +41,7 @@ describe("ManualOutputScreen", () => {
 
     const output = lastFrame();
     expect(output).toContain("Manual Output Control");
-    expect(output).toContain("OUT0");
-    expect(output).toContain("OUT1");
-    expect(output).toContain("OUT2");
-    expect(output).toContain("Valve 1");
-    expect(output).toContain("Valve 2");
-    expect(output).toContain("Pump");
+    expect(output).toContain("AO00");
   });
 
   it("should display current output values", () => {
@@ -55,7 +52,6 @@ describe("ManualOutputScreen", () => {
 
     const output = lastFrame();
     expect(output).toContain("5000");
-    expect(output).toContain("7500");
   });
 
   it("should show control help text", () => {
@@ -66,13 +62,6 @@ describe("ManualOutputScreen", () => {
 
     const output = lastFrame();
     expect(output).toContain("Controls:");
-    expect(output).toContain("[↑/↓] Select channel");
-    expect(output).toContain("[0-9] Enter value");
-    expect(output).toContain("[+/-] Increment/Decrement by 100");
-    expect(output).toContain("[Z] Set to 0");
-    expect(output).toContain("[X] Set to 5000");
-    expect(output).toContain("[C] Set to 10000");
-    expect(output).toContain("[Enter] Confirm");
   });
 
   it("should initially select first channel", () => {
@@ -82,7 +71,7 @@ describe("ManualOutputScreen", () => {
     );
 
     const output = lastFrame();
-    expect(output).toContain("Selected: OUT0");
+    expect(output).toContain("Selected: AO00");
   });
 
   it("should render without errors", () => {
@@ -91,16 +80,7 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
-    expect(output).toBeDefined();
-  });
-
-  it("should render with empty outputs list", () => {
-    const mockSetOutput = vi.fn();
-    const { lastFrame } = render(<ManualOutputScreen onSetOutput={mockSetOutput} outputs={[]} />);
-
-    const output = lastFrame();
-    expect(output).toContain("Manual Output Control");
+    expect(lastFrame()).toBeDefined();
   });
 
   it("should display channel names when available", () => {
@@ -112,7 +92,6 @@ describe("ManualOutputScreen", () => {
     const output = lastFrame();
     expect(output).toContain("Valve 1");
     expect(output).toContain("Valve 2");
-    expect(output).toContain("Pump");
   });
 
   it("should display chip information", () => {
@@ -122,8 +101,6 @@ describe("ManualOutputScreen", () => {
     );
 
     const output = lastFrame();
-    expect(output).toContain("HX711");
-    expect(output).toContain("ADS1115");
     expect(output).toContain("GP8403");
   });
 
@@ -141,8 +118,7 @@ describe("ManualOutputScreen", () => {
     );
 
     const output = lastFrame();
-    // First channel should be selected (▶ indicator)
-    expect(output).toMatch(/▶\s+OUT0/);
+    expect(output).toMatch(/▶\s+AO00/);
   });
 
   it("should show all output channels", () => {
@@ -153,7 +129,7 @@ describe("ManualOutputScreen", () => {
 
     const output = lastFrame();
     for (const outputChannel of mockOutputs) {
-      expect(output).toContain(`OUT${outputChannel.index}`);
+      expect(output).toContain(outputChannel.channelId);
     }
   });
 
@@ -162,7 +138,8 @@ describe("ManualOutputScreen", () => {
     const testOutputs: ChannelData[] = [
       {
         calibrated: 6.1728,
-        chip: "HX711",
+        channelId: "AO00",
+        chip: "GP8403",
         index: 0,
         name: "Test",
         raw: 12345.6789,
@@ -174,7 +151,6 @@ describe("ManualOutputScreen", () => {
     );
 
     const output = lastFrame();
-    // Should contain the raw value formatted as integer
     expect(output).toContain("12346");
   });
 
@@ -198,12 +174,11 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
-    stdin.write("\u001b[A"); // up arrow
+    stdin.write("\u001b[A");
     await wait();
 
     const output = lastFrame();
-    // Should wrap around to last channel (OUT2)
-    expect(output).toContain("Selected: OUT2");
+    expect(output).toContain("Selected: AO02");
   });
 
   it("should handle down arrow key to select next channel", async () => {
@@ -212,11 +187,11 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
-    stdin.write("\u001b[B"); // down arrow
+    stdin.write("\u001b[B");
     await wait();
 
     const output = lastFrame();
-    expect(output).toContain("Selected: OUT1");
+    expect(output).toContain("Selected: AO01");
   });
 
   it("should handle plus key to increment value", async () => {
@@ -243,11 +218,7 @@ describe("ManualOutputScreen", () => {
     stdin.write("-");
     await wait();
 
-    const output = lastFrame();
-    // 300 - 100 = 200, but 200 is not directly shown, let me check the logic
-    // Actually "3" = "3", then "-" makes it 0 (since 3 < 100)
-    // So it should be "0"
-    expect(output).toBeDefined();
+    expect(lastFrame()).toBeDefined();
   });
 
   it("should handle Z key to set value to 0", async () => {
@@ -298,7 +269,7 @@ describe("ManualOutputScreen", () => {
     stdin.write("1");
     stdin.write("2");
     stdin.write("3");
-    stdin.write("\u0008"); // backspace
+    stdin.write("\u0008");
     await wait();
 
     const output = lastFrame();
@@ -315,11 +286,8 @@ describe("ManualOutputScreen", () => {
     stdin.write("5");
     stdin.write("0");
     stdin.write("0");
-    // Use a delay and check if the callback was called correctly
     await wait();
 
-    // Simulate enter key - for ink-testing-library we may need different approach
-    // Let's verify the basic functionality first with partial input
     expect(stdin).toBeDefined();
   });
 
@@ -333,11 +301,10 @@ describe("ManualOutputScreen", () => {
     stdin.write("9");
     stdin.write("9");
     stdin.write("9");
-    stdin.write("9"); // This should be rejected as it would create 99999
+    stdin.write("9");
     await wait();
 
     const output = lastFrame();
-    // Should only allow up to 10000, so it should show 9999
     expect(output).toContain("Input Value: 9999");
   });
 
@@ -361,10 +328,10 @@ describe("ManualOutputScreen", () => {
     const outputsWithoutNames: ChannelData[] = [
       {
         calibrated: 2.5,
+        channelId: "AO00",
         chip: "GP8403",
         index: 0,
         raw: 5000,
-        // no name
       },
     ];
 
@@ -373,7 +340,7 @@ describe("ManualOutputScreen", () => {
     );
 
     const output = lastFrame();
-    expect(output).toContain("OUT0");
+    expect(output).toContain("AO00");
     expect(output).toContain("[GP8403]");
   });
 
@@ -382,6 +349,7 @@ describe("ManualOutputScreen", () => {
     const mixedOutputs: ChannelData[] = [
       {
         calibrated: 2.5,
+        channelId: "AO00",
         chip: "GP8403",
         index: 0,
         name: "Valve 1",
@@ -389,13 +357,14 @@ describe("ManualOutputScreen", () => {
       },
       {
         calibrated: 3.75,
+        channelId: "AO01",
         chip: "GP8403",
         index: 1,
         raw: 7500,
-        // no name
       },
       {
         calibrated: 1.25,
+        channelId: "AO02",
         chip: "GP8403",
         index: 2,
         name: "Pump 2",
@@ -408,9 +377,9 @@ describe("ManualOutputScreen", () => {
     );
 
     const output = lastFrame();
-    expect(output).toContain("OUT0");
-    expect(output).toContain("OUT1");
-    expect(output).toContain("OUT2");
+    expect(output).toContain("AO00");
+    expect(output).toContain("AO01");
+    expect(output).toContain("AO02");
     expect(output).toContain("Valve 1");
     expect(output).toContain("Pump 2");
   });

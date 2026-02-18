@@ -1,6 +1,6 @@
 import { applyCalibration } from "../calibration/index.ts";
 import type { CalibrationConfig, ChannelData } from "../types/index.ts";
-import { getChipType } from "../utils/config.ts";
+import { getChipType, indexToChannelId } from "../utils/config.ts";
 import { ModbusClient } from "./client.ts";
 
 export class ModbusService {
@@ -89,12 +89,13 @@ export class ModbusService {
   getInputData(): ChannelData[] {
     return this.#inputs.map((raw, index) => {
       const chip = getChipType(index);
-      const key = `${index}`;
-      const calibConfig = this.#config.inputs?.[key];
+      const channelId = indexToChannelId(index, false);
+      const calibConfig = this.#config.inputs?.[channelId];
       const calibrated = calibConfig ? applyCalibration(raw, calibConfig.factors) : raw;
 
       return {
         calibrated,
+        channelId,
         chip,
         index,
         name: calibConfig?.name,
@@ -106,12 +107,13 @@ export class ModbusService {
   getOutputData(): ChannelData[] {
     return this.#outputs.map((raw, index) => {
       const chip = "GP8403" as const;
-      const key = `${index}`;
-      const calibConfig = this.#config.outputs?.[key];
+      const channelId = indexToChannelId(index, true);
+      const calibConfig = this.#config.outputs?.[channelId];
       const calibrated = calibConfig ? applyCalibration(raw, calibConfig.factors) : raw;
 
       return {
         calibrated,
+        channelId,
         chip,
         index,
         name: calibConfig?.name,

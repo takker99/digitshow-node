@@ -27,7 +27,7 @@ export function MainScreen({ inputs, outputs, displayMode, connected }: MainScre
   const renderInputList = (list: ChannelData[]) =>
     list.map((input) => (
       <Box key={input.index}>
-        <Text color="gray">CH{input.index.toString().padStart(2, "0")}</Text>
+        <Text color="gray">{input.channelId}</Text>
         <Text> </Text>
         <Text color="yellow">{getValue(input).padStart(10, " ")}</Text>
         {input.name && <Text color="dim"> ({input.name})</Text>}
@@ -83,7 +83,7 @@ export function MainScreen({ inputs, outputs, displayMode, connected }: MainScre
         </Text>
         {outputs.map((output) => (
           <Box key={output.index}>
-            <Text color="gray">OUT{output.index}</Text>
+            <Text color="gray">{output.channelId}</Text>
             <Text> </Text>
             <Text color="green">{getValue(output).padStart(10, " ")}</Text>
             {output.name && <Text color="dim"> ({output.name})</Text>}

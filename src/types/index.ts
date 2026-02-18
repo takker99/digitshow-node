@@ -25,6 +25,7 @@ export type ChipType = "HX711" | "ADS1115" | "GP8403";
 
 // Channel data
 export interface ChannelData {
+  channelId: string;
   index: number;
   raw: number;
   calibrated: number;

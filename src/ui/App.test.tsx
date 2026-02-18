@@ -2,13 +2,21 @@ import { render } from "ink-testing-library";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ModbusService } from "../modbus/service.ts";
 import type { CalibrationConfig, ChannelData } from "../types/index.ts";
+import { indexToChannelId } from "../utils/config.ts";
 import { App } from "./App.tsx";
 
 const wait = () => new Promise((resolve) => setTimeout(resolve, 10));
 
-function createChannelData(index: number, raw: number, chip: ChannelData["chip"], name?: string) {
+function createChannelData(
+  index: number,
+  raw: number,
+  chip: ChannelData["chip"],
+  name?: string,
+  isOutput = false,
+) {
   return {
     calibrated: raw / 100,
+    channelId: indexToChannelId(index, isOutput),
     chip,
     index,
     name,
@@ -18,10 +26,10 @@ function createChannelData(index: number, raw: number, chip: ChannelData["chip"]
 
 const config: CalibrationConfig = {
   inputs: {
-    "0": { factors: [0, 0.1], name: "Moisture" },
+    AI00: { factors: [0, 0.1], name: "Moisture" },
   },
   outputs: {
-    "0": { factors: [0, 1], name: "Valve" },
+    AO00: { factors: [0, 1], name: "Valve" },
   },
 };
 
@@ -46,7 +54,7 @@ class FakeModbusService {
       createChannelData(0, 1111, "HX711", "In-0"),
       createChannelData(8, 2222, "ADS1115", "In-8"),
     ];
-    this.#outputs = [createChannelData(0, 3333, "GP8403", "Out-0")];
+    this.#outputs = [createChannelData(0, 3333, "GP8403", "Out-0", true)];
     this.#connected = true;
     this.#listeners = [];
   }
@@ -102,8 +110,8 @@ describe("App", () => {
     expect(output).toContain("Connected");
     expect(output).toContain("Mode:");
     expect(output).toContain("RAW");
-    expect(output).toContain("CH00");
-    expect(output).toContain("OUT0");
+    expect(output).toContain("AI00");
+    expect(output).toContain("AO00");
   });
 
   it("should update displayed data when service emits changes", async () => {
@@ -175,7 +183,9 @@ describe("App", () => {
     await wait();
 
     stdin.write("1");
+    await wait();
     stdin.write("2");
+    await wait();
     stdin.write("3");
     await wait();
 
@@ -236,21 +246,25 @@ describe("App", () => {
 
   it("should call service.setOutput when manual value is confirmed", async () => {
     const service = new FakeModbusService();
-    const { stdin } = render(<App config={config} service={service as unknown as ModbusService} />);
+    const { stdin, lastFrame } = render(
+      <App config={config} service={service as unknown as ModbusService} />,
+    );
 
     stdin.write("o");
     await wait();
+
+    const initialOutput = lastFrame();
+    expect(initialOutput).toContain("Manual Output Control");
+
     stdin.write("4");
     stdin.write("2");
     await wait();
 
+    const withInput = lastFrame();
+    expect(withInput).toContain("Input Value: 42");
+
     stdin.write("\r");
     await wait();
-
-    if (service.setOutput.mock.calls.length === 0) {
-      stdin.write("\n");
-      await wait();
-    }
 
     expect(service.setOutput).toHaveBeenCalledWith(0, 42);
   });

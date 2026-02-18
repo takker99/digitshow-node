@@ -5,12 +5,12 @@ import { MainScreen } from "./MainScreen.tsx";
 
 describe("MainScreen", () => {
   const mockInputs: ChannelData[] = [
-    { calibrated: 100, chip: "HX711", index: 0, name: "Sensor 1", raw: 1000 },
-    { calibrated: 200, chip: "HX711", index: 1, raw: 2000 },
+    { calibrated: 100, channelId: "AI00", chip: "HX711", index: 0, name: "Sensor 1", raw: 1000 },
+    { calibrated: 200, channelId: "AI01", chip: "HX711", index: 1, raw: 2000 },
   ];
 
   const mockOutputs: ChannelData[] = [
-    { calibrated: 50, chip: "GP8403", index: 0, name: "Valve 1", raw: 500 },
+    { calibrated: 50, channelId: "AO00", chip: "GP8403", index: 0, name: "Valve 1", raw: 500 },
   ];
 
   it("should render main screen with connected status", () => {
@@ -93,8 +93,15 @@ describe("MainScreen", () => {
 
   it("should display ADS1115 chips when present", () => {
     const mixedInputs: ChannelData[] = [
-      { calibrated: 100, chip: "HX711", index: 0, name: "Sensor 1", raw: 1000 },
-      { calibrated: 200, chip: "ADS1115", index: 1, name: "Sensor 2", raw: 2000 },
+      { calibrated: 100, channelId: "AI00", chip: "HX711", index: 0, name: "Sensor 1", raw: 1000 },
+      {
+        calibrated: 200,
+        channelId: "AI01",
+        chip: "ADS1115",
+        index: 1,
+        name: "Sensor 2",
+        raw: 2000,
+      },
     ];
 
     const { lastFrame } = render(
