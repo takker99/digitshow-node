@@ -23,7 +23,7 @@
     "testing",
     "cli"
   ],
-  "author": "",
+  "author": "takker99",
   "license": "MIT",
   "packageManager": "pnpm@10.29.3",
   "dependencies": {
