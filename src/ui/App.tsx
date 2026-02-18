@@ -47,8 +47,12 @@ export function App({ service, config }: AppProps) {
       return;
     }
 
+    // C key only for navigation when not in manual screen
+    // (manual screen uses C for "set to 10000")
     if (input === "c" || input === "C") {
-      setScreen("config");
+      if (screen !== "manual") {
+        setScreen("config");
+      }
       return;
     }
 
