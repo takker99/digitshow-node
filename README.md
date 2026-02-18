@@ -83,21 +83,17 @@ inputs:
   "0":
     name: "Moisture Sensor 1"
     factors: [0, 0.1, 0.0001]  # Quadratic: 0 + 0.1*x + 0.0001*x²
-    enabled: true
   "2":
     name: "Temperature Sensor"
     factors: [-40, 0.01]  # Linear: -40 + 0.01*x
-    enabled: true
   "3":
     name: "Advanced Sensor"
     factors: [1, 0.5, 0.001, 0.00001]  # Cubic polynomial
-    enabled: true
 
 outputs:
   "0":
     name: "Water Valve"
     factors: [0, 1]  # Identity: 0 + 1*x
-    enabled: false
 ```
 
 ### Polynomial Formula

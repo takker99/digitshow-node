@@ -11,15 +11,15 @@ import { App } from "./ui/App.tsx";
 // Mock calibration config
 const config = {
   inputs: {
-    "0": { name: "Moisture 1", factors: [0, 0.1, 0.0001], enabled: true },
-    "1": { name: "Moisture 2", factors: [0, 0.1, 0.0001], enabled: true },
-    "2": { name: "Temperature", factors: [-40, 0.01, 0], enabled: true },
-    "8": { name: "pH Sensor", factors: [0, 0.001, 0], enabled: true },
-    "9": { name: "EC Sensor", factors: [0, 0.01, 0], enabled: true },
+    "0": { name: "Moisture 1", factors: [0, 0.1, 0.0001] },
+    "1": { name: "Moisture 2", factors: [0, 0.1, 0.0001] },
+    "2": { name: "Temperature", factors: [-40, 0.01, 0] },
+    "8": { name: "pH Sensor", factors: [0, 0.001, 0] },
+    "9": { name: "EC Sensor", factors: [0, 0.01, 0] },
   },
   outputs: {
-    "0": { name: "Water Valve", factors: [0, 1, 0], enabled: false },
-    "1": { name: "Nutrient Pump", factors: [0, 1, 0], enabled: false },
+    "0": { name: "Water Valve", factors: [0, 1, 0] },
+    "1": { name: "Nutrient Pump", factors: [0, 1, 0] },
   },
 };
 
@@ -65,7 +65,7 @@ class MockModbusService {
       const chip = index <= 7 ? "HX711" : "ADS1115";
       const key = `${index}` as keyof typeof config.inputs;
       const calibConfig = config.inputs?.[key];
-      const calibrated = calibConfig?.enabled
+      const calibrated = calibConfig
         ? this.#applyCalibration(raw, calibConfig.factors as number[])
         : raw;
 
@@ -84,7 +84,7 @@ class MockModbusService {
       const chip = "GP8403";
       const key = `${index}` as keyof typeof config.outputs;
       const calibConfig = config.outputs?.[key];
-      const calibrated = calibConfig?.enabled
+      const calibrated = calibConfig
         ? this.#applyCalibration(raw, calibConfig.factors as number[])
         : raw;
 

@@ -8,35 +8,27 @@ inputs:
   "0":
     name: "Shear LC"
     factors: [0, 0.000241353]
-    enabled: true
   "1":
     name: "Vertical LC"
     factors: [0, 0.000310774]
-    enabled: true
   "2":
     name: "Shear LVDT"
     factors: [0, 0.000703225]
-    enabled: true
   "3":
     name: "Front Vertical LVDT"
     factors: [0, 0.000237645]
-    enabled: true
   "4":
     name: "Rear Vertical LVDT"
     factors: [0, 0.000237689]
-    enabled: true
   "5":
     name: "Front Friction LC"
     factors: [0, 0.00004399001]
-    enabled: true
   "6":
     name: "Rear Friction LC"
     factors: [0, 0.00004399001]
-    enabled: true
   "7":
     name: "Shear LVDT 2"
     factors: [0, 0.000236096]
-    enabled: true
 
 outputs:
   "0":
