@@ -24,7 +24,6 @@ export function ConfigScreen({ config }: ConfigScreenProps) {
               <Text color="gray">CH{key.padStart(2, "0")}: </Text>
               <Text>
                 {calib.name || "Unnamed"} - [{calib.factors.join(", ")}]{" "}
-                {calib.enabled ? "" : "(disabled)"}
               </Text>
             </Box>
           ))}
@@ -43,7 +42,6 @@ export function ConfigScreen({ config }: ConfigScreenProps) {
               <Text color="gray">OUT{key}: </Text>
               <Text>
                 {calib.name || "Unnamed"} - [{calib.factors.join(", ")}]{" "}
-                {calib.enabled ? "" : "(disabled)"}
               </Text>
             </Box>
           ))}

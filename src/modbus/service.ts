@@ -91,7 +91,7 @@ export class ModbusService {
       const chip = getChipType(index);
       const key = `${index}`;
       const calibConfig = this.#config.inputs?.[key];
-      const calibrated = calibConfig?.enabled ? applyCalibration(raw, calibConfig.factors) : raw;
+      const calibrated = calibConfig ? applyCalibration(raw, calibConfig.factors) : raw;
 
       return {
         calibrated,
@@ -108,7 +108,7 @@ export class ModbusService {
       const chip = "GP8403" as const;
       const key = `${index}`;
       const calibConfig = this.#config.outputs?.[key];
-      const calibrated = calibConfig?.enabled ? applyCalibration(raw, calibConfig.factors) : raw;
+      const calibrated = calibConfig ? applyCalibration(raw, calibConfig.factors) : raw;
 
       return {
         calibrated,
