@@ -14,8 +14,6 @@
     "build": "tsgo --noEmit",
     "test:watch": "vitest",
     "test": "vitest run --coverage",
-    "lint": "biome check .",
-    "format": "biome format --write .",
     "check": "biome check --write ."
   },
   "keywords": [
