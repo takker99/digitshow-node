@@ -24,7 +24,7 @@
     "cli"
   ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "packageManager": "pnpm@10.29.3",
   "dependencies": {
     "ink": "^6.7.0",
