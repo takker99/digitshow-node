@@ -14,6 +14,24 @@ export function MainScreen({ inputs, outputs, displayMode, connected }: MainScre
     return value.toFixed(2);
   };
 
+  const normalizeChip = (chip: string) => chip.toLowerCase();
+  const sortByIndex = (list: ChannelData[]) => list.slice().sort((a, b) => a.index - b.index);
+
+  const hx711Inputs = sortByIndex(inputs.filter((input) => normalizeChip(input.chip) === "hx711"));
+  const ads1115Inputs = sortByIndex(
+    inputs.filter((input) => normalizeChip(input.chip) === "ads1115"),
+  );
+
+  const renderInputList = (list: ChannelData[]) =>
+    list.map((input) => (
+      <Box key={input.index}>
+        <Text color="gray">CH{input.index.toString().padStart(2, "0")}</Text>
+        <Text> </Text>
+        <Text color="yellow">{getValue(input).padStart(10, " ")}</Text>
+        {input.name && <Text color="dim"> ({input.name})</Text>}
+      </Box>
+    ));
+
   return (
     <Box flexDirection="column" padding={1}>
       <Box marginBottom={1}>
@@ -34,24 +52,37 @@ export function MainScreen({ inputs, outputs, displayMode, connected }: MainScre
         <Text bold underline>
           Input Channels (0-15)
         </Text>
-        {inputs.map((input) => (
-          <Box key={input.index}>
-            <Text color="gray">CH{input.index.toString().padStart(2, "0")}</Text>
-            <Text> [{input.chip}] </Text>
-            <Text color="yellow">{getValue(input).padStart(10, " ")}</Text>
-            {input.name && <Text color="dim"> ({input.name})</Text>}
-          </Box>
-        ))}
+        <Box flexDirection="row">
+          {hx711Inputs.length > 0 && (
+            <Box flexDirection="column" marginRight={4}>
+              <Text bold underline>
+                HX711
+              </Text>
+              {renderInputList(hx711Inputs)}
+            </Box>
+          )}
+          {ads1115Inputs.length > 0 && (
+            <Box flexDirection="column">
+              <Text bold underline>
+                ADS1115
+              </Text>
+              {renderInputList(ads1115Inputs)}
+            </Box>
+          )}
+        </Box>
       </Box>
 
       <Box flexDirection="column">
         <Text bold underline>
           Output Channels (0-7)
         </Text>
+        <Text bold underline>
+          GP8403
+        </Text>
         {outputs.map((output) => (
           <Box key={output.index}>
             <Text color="gray">OUT{output.index}</Text>
-            <Text> [{output.chip}] </Text>
+            <Text> </Text>
             <Text color="green">{getValue(output).padStart(10, " ")}</Text>
             {output.name && <Text color="dim"> ({output.name})</Text>}
           </Box>
