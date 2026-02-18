@@ -94,11 +94,11 @@ export class ModbusService {
       const calibrated = calibConfig?.enabled ? applyCalibration(raw, calibConfig.factors) : raw;
 
       return {
-        index,
-        raw,
         calibrated,
         chip,
+        index,
         name: calibConfig?.name,
+        raw,
       };
     });
   }
@@ -111,11 +111,11 @@ export class ModbusService {
       const calibrated = calibConfig?.enabled ? applyCalibration(raw, calibConfig.factors) : raw;
 
       return {
-        index,
-        raw,
         calibrated,
         chip,
+        index,
         name: calibConfig?.name,
+        raw,
       };
     });
   }

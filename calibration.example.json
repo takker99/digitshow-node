@@ -1,46 +1,46 @@
 {
   "inputs": {
     "0": {
-      "name": "Moisture Sensor 1",
+      "enabled": true,
       "factors": [0, 0.1, 0.0001],
-      "enabled": true
+      "name": "Moisture Sensor 1"
     },
     "1": {
-      "name": "Moisture Sensor 2",
+      "enabled": true,
       "factors": [0, 0.1, 0.0001],
-      "enabled": true
+      "name": "Moisture Sensor 2"
     },
     "2": {
-      "name": "Temperature Sensor",
+      "enabled": true,
       "factors": [-40, 0.01],
-      "enabled": true
+      "name": "Temperature Sensor"
     },
     "3": {
-      "name": "Advanced Sensor",
+      "enabled": true,
       "factors": [1, 0.5, 0.001, 0.00001],
-      "enabled": true
+      "name": "Advanced Sensor"
     },
     "8": {
-      "name": "pH Sensor",
+      "enabled": true,
       "factors": [0, 0.001],
-      "enabled": true
+      "name": "pH Sensor"
     },
     "9": {
-      "name": "EC Sensor",
+      "enabled": true,
       "factors": [0, 0.01],
-      "enabled": true
+      "name": "EC Sensor"
     }
   },
   "outputs": {
     "0": {
-      "name": "Water Valve",
+      "enabled": false,
       "factors": [0, 1],
-      "enabled": false
+      "name": "Water Valve"
     },
     "1": {
-      "name": "Nutrient Pump",
+      "enabled": false,
       "factors": [0, 1],
-      "enabled": false
+      "name": "Nutrient Pump"
     }
   }
 }

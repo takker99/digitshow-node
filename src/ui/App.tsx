@@ -79,15 +79,15 @@ export function App({ service, config }: AppProps) {
     <Box flexDirection="column">
       {screen === "main" && (
         <MainScreen
+          connected={connected}
+          displayMode={displayMode}
           inputs={inputs}
           outputs={outputs}
-          displayMode={displayMode}
-          connected={connected}
         />
       )}
       {screen === "config" && <ConfigScreen config={config} />}
       {screen === "manual" && (
-        <ManualOutputScreen outputs={outputs} onSetOutput={handleSetOutput} />
+        <ManualOutputScreen onSetOutput={handleSetOutput} outputs={outputs} />
       )}
     </Box>
   );

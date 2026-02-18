@@ -11,15 +11,15 @@ import { App } from "./ui/App.tsx";
 // Mock calibration config
 const config = {
   inputs: {
-    "0": { name: "Moisture 1", factors: [0, 0.1, 0.0001] },
-    "1": { name: "Moisture 2", factors: [0, 0.1, 0.0001] },
-    "2": { name: "Temperature", factors: [-40, 0.01, 0] },
-    "8": { name: "pH Sensor", factors: [0, 0.001, 0] },
-    "9": { name: "EC Sensor", factors: [0, 0.01, 0] },
+    "0": { factors: [0, 0.1, 0.0001], name: "Moisture 1" },
+    "1": { factors: [0, 0.1, 0.0001], name: "Moisture 2" },
+    "2": { factors: [-40, 0.01, 0], name: "Temperature" },
+    "8": { factors: [0, 0.001, 0], name: "pH Sensor" },
+    "9": { factors: [0, 0.01, 0], name: "EC Sensor" },
   },
   outputs: {
-    "0": { name: "Water Valve", factors: [0, 1, 0] },
-    "1": { name: "Nutrient Pump", factors: [0, 1, 0] },
+    "0": { factors: [0, 1, 0], name: "Water Valve" },
+    "1": { factors: [0, 1, 0], name: "Nutrient Pump" },
   },
 };
 
@@ -70,11 +70,11 @@ class MockModbusService {
         : raw;
 
       return {
-        index,
-        raw,
         calibrated,
         chip,
+        index,
         name: calibConfig?.name,
+        raw,
       };
     });
   }
@@ -89,11 +89,11 @@ class MockModbusService {
         : raw;
 
       return {
-        index,
-        raw,
         calibrated,
         chip,
+        index,
         name: calibConfig?.name,
+        raw,
       };
     });
   }
@@ -123,7 +123,7 @@ const service = new MockModbusService();
 await service.start();
 
 // Render the UI
-const { waitUntilExit } = render(_jsx(App, { service: service, config: config }));
+const { waitUntilExit } = render(_jsx(App, { config: config, service: service }));
 
 // Wait for the app to exit
 await waitUntilExit();

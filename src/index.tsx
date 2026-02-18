@@ -74,7 +74,7 @@ async function main() {
     console.log("Connected! Starting UI...\n");
 
     // Render the UI
-    const { waitUntilExit } = render(<App service={service} config={config} />);
+    const { waitUntilExit } = render(<App config={config} service={service} />);
 
     // Wait for the app to exit
     await waitUntilExit();

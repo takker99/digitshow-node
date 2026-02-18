@@ -7,10 +7,10 @@ describe("ConfigScreen", () => {
   it("should render config screen with enabled calibrations", () => {
     const config: CalibrationConfig = {
       inputs: {
-        "0": { name: "Sensor 1", factors: [0, 1, 0.001], enabled: true },
+        "0": { enabled: true, factors: [0, 1, 0.001], name: "Sensor 1" },
       },
       outputs: {
-        "0": { name: "Valve 1", factors: [0, 1], enabled: true },
+        "0": { enabled: true, factors: [0, 1], name: "Valve 1" },
       },
     };
 
@@ -29,10 +29,10 @@ describe("ConfigScreen", () => {
   it("should render config screen with disabled calibrations", () => {
     const config: CalibrationConfig = {
       inputs: {
-        "1": { name: "Sensor 2", factors: [10, 0.5], enabled: false },
+        "1": { enabled: false, factors: [10, 0.5], name: "Sensor 2" },
       },
       outputs: {
-        "0": { name: "Valve 1", factors: [0, 1], enabled: false },
+        "0": { enabled: false, factors: [0, 1], name: "Valve 1" },
       },
     };
 
@@ -49,7 +49,7 @@ describe("ConfigScreen", () => {
   it("should show message when no input calibrations", () => {
     const config: CalibrationConfig = {
       outputs: {
-        "0": { name: "Valve 1", factors: [0, 1], enabled: true },
+        "0": { enabled: true, factors: [0, 1], name: "Valve 1" },
       },
     };
 
@@ -61,7 +61,7 @@ describe("ConfigScreen", () => {
   it("should show message when no output calibrations", () => {
     const config: CalibrationConfig = {
       inputs: {
-        "0": { name: "Sensor 1", factors: [0, 1], enabled: true },
+        "0": { enabled: true, factors: [0, 1], name: "Sensor 1" },
       },
     };
 
@@ -85,7 +85,7 @@ describe("ConfigScreen", () => {
   it("should display disabled state for input calibrations", () => {
     const config: CalibrationConfig = {
       inputs: {
-        "0": { name: "Sensor 1", factors: [0, 1], enabled: false },
+        "0": { enabled: false, factors: [0, 1], name: "Sensor 1" },
       },
     };
 
@@ -98,7 +98,7 @@ describe("ConfigScreen", () => {
   it("should display disabled state for output calibrations", () => {
     const config: CalibrationConfig = {
       outputs: {
-        "0": { name: "Valve 1", factors: [0, 1], enabled: false },
+        "0": { enabled: false, factors: [0, 1], name: "Valve 1" },
       },
     };
 
@@ -111,12 +111,12 @@ describe("ConfigScreen", () => {
   it("should display both enabled and disabled calibrations in same config", () => {
     const config: CalibrationConfig = {
       inputs: {
-        "0": { name: "Enabled Sensor", factors: [0, 1], enabled: true },
-        "1": { name: "Disabled Sensor", factors: [0, 1], enabled: false },
+        "0": { enabled: true, factors: [0, 1], name: "Enabled Sensor" },
+        "1": { enabled: false, factors: [0, 1], name: "Disabled Sensor" },
       },
       outputs: {
-        "0": { name: "Enabled Valve", factors: [0, 1], enabled: true },
-        "1": { name: "Disabled Valve", factors: [0, 1], enabled: false },
+        "0": { enabled: true, factors: [0, 1], name: "Enabled Valve" },
+        "1": { enabled: false, factors: [0, 1], name: "Disabled Valve" },
       },
     };
 

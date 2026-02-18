@@ -112,10 +112,10 @@ export function ManualOutputScreen({ outputs, onSetOutput }: ManualOutputScreenP
       </Box>
 
       <Box
+        borderColor="blue"
+        borderStyle="round"
         flexDirection="column"
         marginBottom={1}
-        borderStyle="round"
-        borderColor="blue"
         padding={1}
       >
         <Text>

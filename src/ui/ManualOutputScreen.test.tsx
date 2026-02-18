@@ -9,32 +9,32 @@ const wait = () => new Promise((resolve) => setTimeout(resolve, 10));
 describe("ManualOutputScreen", () => {
   const mockOutputs: ChannelData[] = [
     {
-      index: 0,
-      chip: "HX711",
-      raw: 5000,
       calibrated: 2.5,
+      chip: "HX711",
+      index: 0,
       name: "Valve 1",
+      raw: 5000,
     },
     {
-      index: 1,
-      chip: "ADS1115",
-      raw: 7500,
       calibrated: 3.75,
+      chip: "ADS1115",
+      index: 1,
       name: "Valve 2",
+      raw: 7500,
     },
     {
-      index: 2,
-      chip: "GP8403",
-      raw: 0,
       calibrated: 0,
+      chip: "GP8403",
+      index: 2,
       name: "Pump",
+      raw: 0,
     },
   ];
 
   it("should render manual output screen with channel list", () => {
     const mockSetOutput = vi.fn();
     const { lastFrame } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     const output = lastFrame();
@@ -50,7 +50,7 @@ describe("ManualOutputScreen", () => {
   it("should display current output values", () => {
     const mockSetOutput = vi.fn();
     const { lastFrame } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     const output = lastFrame();
@@ -61,7 +61,7 @@ describe("ManualOutputScreen", () => {
   it("should show control help text", () => {
     const mockSetOutput = vi.fn();
     const { lastFrame } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     const output = lastFrame();
@@ -78,7 +78,7 @@ describe("ManualOutputScreen", () => {
   it("should initially select first channel", () => {
     const mockSetOutput = vi.fn();
     const { lastFrame } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     const output = lastFrame();
@@ -88,7 +88,7 @@ describe("ManualOutputScreen", () => {
   it("should render without errors", () => {
     const mockSetOutput = vi.fn();
     const { lastFrame } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     const output = lastFrame();
@@ -97,7 +97,7 @@ describe("ManualOutputScreen", () => {
 
   it("should render with empty outputs list", () => {
     const mockSetOutput = vi.fn();
-    const { lastFrame } = render(<ManualOutputScreen outputs={[]} onSetOutput={mockSetOutput} />);
+    const { lastFrame } = render(<ManualOutputScreen onSetOutput={mockSetOutput} outputs={[]} />);
 
     const output = lastFrame();
     expect(output).toContain("Manual Output Control");
@@ -106,7 +106,7 @@ describe("ManualOutputScreen", () => {
   it("should display channel names when available", () => {
     const mockSetOutput = vi.fn();
     const { lastFrame } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     const output = lastFrame();
@@ -118,7 +118,7 @@ describe("ManualOutputScreen", () => {
   it("should display chip information", () => {
     const mockSetOutput = vi.fn();
     const { lastFrame } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     const output = lastFrame();
@@ -130,14 +130,14 @@ describe("ManualOutputScreen", () => {
   it("should accept onSetOutput as a callback prop", () => {
     const mockSetOutput = vi.fn();
     expect(() => {
-      render(<ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />);
+      render(<ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />);
     }).not.toThrow();
   });
 
   it("should highlight selected channel with arrow indicator", () => {
     const mockSetOutput = vi.fn();
     const { lastFrame } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     const output = lastFrame();
@@ -148,7 +148,7 @@ describe("ManualOutputScreen", () => {
   it("should show all output channels", () => {
     const mockSetOutput = vi.fn();
     const { lastFrame } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     const output = lastFrame();
@@ -161,16 +161,16 @@ describe("ManualOutputScreen", () => {
     const mockSetOutput = vi.fn();
     const testOutputs: ChannelData[] = [
       {
-        index: 0,
-        chip: "HX711",
-        raw: 12345.6789,
         calibrated: 6.1728,
+        chip: "HX711",
+        index: 0,
         name: "Test",
+        raw: 12345.6789,
       },
     ];
 
     const { lastFrame } = render(
-      <ManualOutputScreen outputs={testOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={testOutputs} />,
     );
 
     const output = lastFrame();
@@ -181,7 +181,7 @@ describe("ManualOutputScreen", () => {
   it("should handle number input", async () => {
     const mockSetOutput = vi.fn();
     const { lastFrame, stdin } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     stdin.write("1");
@@ -195,7 +195,7 @@ describe("ManualOutputScreen", () => {
   it("should handle up arrow key to select previous channel", async () => {
     const mockSetOutput = vi.fn();
     const { lastFrame, stdin } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     stdin.write("\u001b[A"); // up arrow
@@ -209,7 +209,7 @@ describe("ManualOutputScreen", () => {
   it("should handle down arrow key to select next channel", async () => {
     const mockSetOutput = vi.fn();
     const { lastFrame, stdin } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     stdin.write("\u001b[B"); // down arrow
@@ -222,7 +222,7 @@ describe("ManualOutputScreen", () => {
   it("should handle plus key to increment value", async () => {
     const mockSetOutput = vi.fn();
     const { lastFrame, stdin } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     stdin.write("5");
@@ -236,7 +236,7 @@ describe("ManualOutputScreen", () => {
   it("should handle minus key to decrement value", async () => {
     const mockSetOutput = vi.fn();
     const { lastFrame, stdin } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     stdin.write("3");
@@ -253,7 +253,7 @@ describe("ManualOutputScreen", () => {
   it("should handle Z key to set value to 0", async () => {
     const mockSetOutput = vi.fn();
     const { lastFrame, stdin } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     stdin.write("z");
@@ -266,7 +266,7 @@ describe("ManualOutputScreen", () => {
   it("should handle X key to set value to 5000", async () => {
     const mockSetOutput = vi.fn();
     const { lastFrame, stdin } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     stdin.write("x");
@@ -279,7 +279,7 @@ describe("ManualOutputScreen", () => {
   it("should handle C key to set value to 10000", async () => {
     const mockSetOutput = vi.fn();
     const { lastFrame, stdin } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     stdin.write("c");
@@ -292,7 +292,7 @@ describe("ManualOutputScreen", () => {
   it("should handle backspace to delete last digit", async () => {
     const mockSetOutput = vi.fn();
     const { lastFrame, stdin } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     stdin.write("1");
@@ -308,7 +308,7 @@ describe("ManualOutputScreen", () => {
   it("should handle enter key to confirm value", async () => {
     const mockSetOutput = vi.fn();
     const { stdin } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     stdin.write("1");
@@ -326,7 +326,7 @@ describe("ManualOutputScreen", () => {
   it("should clamp input value to max 10000", async () => {
     const mockSetOutput = vi.fn();
     const { lastFrame, stdin } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     stdin.write("9");
@@ -344,7 +344,7 @@ describe("ManualOutputScreen", () => {
   it("should ignore invalid characters", async () => {
     const mockSetOutput = vi.fn();
     const { lastFrame, stdin } = render(
-      <ManualOutputScreen outputs={mockOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
     stdin.write("@");
@@ -360,16 +360,16 @@ describe("ManualOutputScreen", () => {
     const mockSetOutput = vi.fn();
     const outputsWithoutNames: ChannelData[] = [
       {
-        index: 0,
-        chip: "GP8403",
-        raw: 5000,
         calibrated: 2.5,
+        chip: "GP8403",
+        index: 0,
+        raw: 5000,
         // no name
       },
     ];
 
     const { lastFrame } = render(
-      <ManualOutputScreen outputs={outputsWithoutNames} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={outputsWithoutNames} />,
     );
 
     const output = lastFrame();
@@ -381,30 +381,30 @@ describe("ManualOutputScreen", () => {
     const mockSetOutput = vi.fn();
     const mixedOutputs: ChannelData[] = [
       {
-        index: 0,
-        chip: "GP8403",
-        raw: 5000,
         calibrated: 2.5,
+        chip: "GP8403",
+        index: 0,
         name: "Valve 1",
+        raw: 5000,
       },
       {
-        index: 1,
-        chip: "GP8403",
-        raw: 7500,
         calibrated: 3.75,
+        chip: "GP8403",
+        index: 1,
+        raw: 7500,
         // no name
       },
       {
-        index: 2,
-        chip: "GP8403",
-        raw: 2500,
         calibrated: 1.25,
+        chip: "GP8403",
+        index: 2,
         name: "Pump 2",
+        raw: 2500,
       },
     ];
 
     const { lastFrame } = render(
-      <ManualOutputScreen outputs={mixedOutputs} onSetOutput={mockSetOutput} />,
+      <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mixedOutputs} />,
     );
 
     const output = lastFrame();

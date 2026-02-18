@@ -6,8 +6,8 @@ export const CalibrationFactorSchema = z.array(z.number()).min(1);
 
 // Calibration config for a single channel
 export const ChannelCalibrationSchema = z.object({
-  name: z.string().optional(),
   factors: CalibrationFactorSchema,
+  name: z.string().optional(),
 });
 
 // Full calibration config
