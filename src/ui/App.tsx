@@ -1,5 +1,5 @@
 import { Box, useApp, useInput } from "ink";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { ModbusService } from "../modbus/service.ts";
 import type { CalibrationConfig, ChannelData, DisplayMode, Screen } from "../types/index.ts";
 import { ConfigScreen } from "./ConfigScreen.tsx";
@@ -15,24 +15,20 @@ export function App({ service, config }: AppProps) {
   const { exit } = useApp();
   const [screen, setScreen] = useState<Screen>("main");
   const [displayMode, setDisplayMode] = useState<DisplayMode>("raw");
-  const [inputs, setInputs] = useState<ChannelData[]>([]);
-  const [outputs, setOutputs] = useState<ChannelData[]>([]);
-  const [connected, setConnected] = useState(false);
+  const [data, setData] = useState<{
+    inputs: ChannelData[];
+    outputs: ChannelData[];
+    connected: boolean;
+  }>(() => ({
+    connected: service.getConnectionStatus(),
+    inputs: service.getInputData(),
+    outputs: service.getOutputData(),
+  }));
 
   useEffect(() => {
-    // Update connection status
-    setConnected(service.getConnectionStatus());
-
-    // Listen for data updates
-    service.onChange((newInputs, newOutputs) => {
-      setInputs(newInputs);
-      setOutputs(newOutputs);
-      setConnected(service.getConnectionStatus());
+    return service.onChange((newInputs, newOutputs) => {
+      setData({ connected: service.getConnectionStatus(), inputs: newInputs, outputs: newOutputs });
     });
-
-    // Initial data
-    setInputs(service.getInputData());
-    setOutputs(service.getOutputData());
   }, [service]);
 
   useInput((input, _key) => {
@@ -71,23 +67,26 @@ export function App({ service, config }: AppProps) {
     }
   });
 
-  const handleSetOutput = (index: number, value: number) => {
-    service.setOutput(index, value);
-  };
+  const handleSetOutput = useCallback(
+    (index: number, value: number) => {
+      service.setOutput(index, value);
+    },
+    [service],
+  );
 
   return (
     <Box flexDirection="column">
       {screen === "main" && (
         <MainScreen
-          connected={connected}
+          connected={data.connected}
           displayMode={displayMode}
-          inputs={inputs}
-          outputs={outputs}
+          inputs={data.inputs}
+          outputs={data.outputs}
         />
       )}
       {screen === "config" && <ConfigScreen config={config} />}
       {screen === "manual" && (
-        <ManualOutputScreen onSetOutput={handleSetOutput} outputs={outputs} />
+        <ManualOutputScreen onSetOutput={handleSetOutput} outputs={data.outputs} />
       )}
     </Box>
   );

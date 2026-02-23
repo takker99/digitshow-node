@@ -126,7 +126,9 @@ const service = new MockModbusService();
 await service.start();
 
 // Render the UI
-const { waitUntilExit } = render(_jsx(App, { config: config, service: service }));
+const { waitUntilExit } = render(_jsx(App, { config: config, service: service }), {
+  incrementalRendering: true,
+});
 
 // Wait for the app to exit
 await waitUntilExit();

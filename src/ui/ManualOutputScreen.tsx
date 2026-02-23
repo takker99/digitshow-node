@@ -9,7 +9,7 @@ interface ManualOutputScreenProps {
 
 export function ManualOutputScreen({ outputs, onSetOutput }: ManualOutputScreenProps) {
   const [selectedChannel, setSelectedChannel] = useState(0);
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState<number | null>(null);
 
   useInput((input, key) => {
     // Channel selection with arrow keys
@@ -26,60 +26,56 @@ export function ManualOutputScreen({ outputs, onSetOutput }: ManualOutputScreenP
     // Number input (0-9)
     if (/^[0-9]$/.test(input)) {
       setInputValue((prev) => {
-        const newValue = prev + input;
-        // Limit to max value 10000
-        return parseInt(newValue, 10) <= 10000 ? newValue : prev;
+        const newStr = (prev !== null ? prev.toString() : "") + input;
+        const newValue = parseInt(newStr, 10);
+        return newValue <= 10000 ? newValue : prev;
       });
       return;
     }
 
     // Increment/Decrement
     if (input === "+" || input === "=") {
-      setInputValue((prev) => {
-        const current = parseInt(prev || "0", 10);
-        const newValue = Math.min(current + 100, 10000);
-        return newValue.toString();
-      });
+      setInputValue((prev) => Math.min((prev ?? 0) + 100, 10000));
       return;
     }
 
     if (input === "-" || input === "_") {
-      setInputValue((prev) => {
-        const current = parseInt(prev || "0", 10);
-        const newValue = Math.max(current - 100, 0);
-        return newValue.toString();
-      });
+      setInputValue((prev) => Math.max((prev ?? 0) - 100, 0));
       return;
     }
 
     // Quick set values
     if (input === "z" || input === "Z") {
-      setInputValue("0");
+      setInputValue(0);
       return;
     }
 
     if (input === "x" || input === "X") {
-      setInputValue("5000");
+      setInputValue(5000);
       return;
     }
 
     if (input === "c" || input === "C") {
-      setInputValue("10000");
+      setInputValue(10000);
       return;
     }
 
     // Backspace - delete last digit
     if (key.backspace) {
-      setInputValue((prev) => prev.slice(0, -1));
+      setInputValue((prev) => {
+        if (prev === null) return null;
+        const str = prev.toString().slice(0, -1);
+        return str.length > 0 ? parseInt(str, 10) : null;
+      });
       return;
     }
 
     // Enter - confirm value
     if (key.return) {
-      const value = parseInt(inputValue || "0", 10);
+      const value = inputValue ?? 0;
       if (value >= 0 && value <= 10000) {
         onSetOutput(selectedChannel, value);
-        setInputValue("");
+        setInputValue(null);
       }
       return;
     }
@@ -126,7 +122,7 @@ export function ManualOutputScreen({ outputs, onSetOutput }: ManualOutputScreenP
           </Text>{" "}
           | Input Value:{" "}
           <Text bold color="yellow">
-            {inputValue || "—"}
+            {inputValue !== null ? inputValue : "—"}
           </Text>
         </Text>
       </Box>

@@ -128,8 +128,11 @@ export class ModbusService {
     }
   }
 
-  onChange(listener: (inputs: ChannelData[], outputs: ChannelData[]) => void): void {
+  onChange(listener: (inputs: ChannelData[], outputs: ChannelData[]) => void): () => void {
     this.#listeners.push(listener);
+    return () => {
+      this.#listeners = this.#listeners.filter((l) => l !== listener);
+    };
   }
 
   getConnectionStatus(): boolean {

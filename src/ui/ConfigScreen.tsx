@@ -18,16 +18,16 @@ export function ConfigScreen({ config }: ConfigScreenProps) {
         <Text bold underline>
           Input Calibrations
         </Text>
-        {config.inputs &&
-          Object.entries(config.inputs).map(([key, calib]) => (
+        {Object.entries(config.inputs ?? {}).length > 0 ? (
+          Object.entries(config.inputs ?? {}).map(([key, calib]) => (
             <Box key={key}>
               <Text color="gray">CH{key.padStart(2, "0")}: </Text>
               <Text>
                 {calib.name || "Unnamed"} - [{calib.factors.join(", ")}]{" "}
               </Text>
             </Box>
-          ))}
-        {(!config.inputs || Object.keys(config.inputs).length === 0) && (
+          ))
+        ) : (
           <Text color="dim">No input calibrations configured</Text>
         )}
       </Box>
@@ -36,16 +36,16 @@ export function ConfigScreen({ config }: ConfigScreenProps) {
         <Text bold underline>
           Output Calibrations
         </Text>
-        {config.outputs &&
-          Object.entries(config.outputs).map(([key, calib]) => (
+        {Object.entries(config.outputs ?? {}).length > 0 ? (
+          Object.entries(config.outputs ?? {}).map(([key, calib]) => (
             <Box key={key}>
               <Text color="gray">OUT{key}: </Text>
               <Text>
                 {calib.name || "Unnamed"} - [{calib.factors.join(", ")}]{" "}
               </Text>
             </Box>
-          ))}
-        {(!config.outputs || Object.keys(config.outputs).length === 0) && (
+          ))
+        ) : (
           <Text color="dim">No output calibrations configured</Text>
         )}
       </Box>

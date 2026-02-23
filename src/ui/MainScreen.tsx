@@ -1,4 +1,5 @@
 import { Box, Text } from "ink";
+import { memo, useMemo } from "react";
 import type { ChannelData, DisplayMode } from "../types/index.ts";
 
 interface MainScreenProps {
@@ -8,31 +9,43 @@ interface MainScreenProps {
   connected: boolean;
 }
 
-export function MainScreen({ inputs, outputs, displayMode, connected }: MainScreenProps) {
-  const getValue = (data: ChannelData) => {
-    if (displayMode === "raw") {
-      return data.raw.toFixed(0);
-    }
-    return data.calibrated.toFixed(4);
-  };
+// Hoisted pure helpers (no dependency on component state/props)
+const normalizeChip = (chip: string) => chip.toLowerCase();
+const sortByIndex = (list: ChannelData[]) => list.slice().sort((a, b) => a.index - b.index);
+const getValue = (data: ChannelData, mode: DisplayMode) =>
+  mode === "raw" ? data.raw.toFixed(0) : data.calibrated.toFixed(4);
 
-  const normalizeChip = (chip: string) => chip.toLowerCase();
-  const sortByIndex = (list: ChannelData[]) => list.slice().sort((a, b) => a.index - b.index);
-
-  const hx711Inputs = sortByIndex(inputs.filter((input) => normalizeChip(input.chip) === "hx711"));
-  const ads1115Inputs = sortByIndex(
-    inputs.filter((input) => normalizeChip(input.chip) === "ads1115"),
+// Extracted sub-component to enable memoization
+const InputChannelList = memo(function InputChannelList({
+  list,
+  displayMode,
+}: {
+  list: ChannelData[];
+  displayMode: DisplayMode;
+}) {
+  return (
+    <>
+      {list.map((input) => (
+        <Box key={input.index}>
+          <Text color="gray">{input.channelId}</Text>
+          <Text> </Text>
+          <Text color="yellow">{getValue(input, displayMode).padStart(10, " ")}</Text>
+          {input.name && <Text color="dim"> ({input.name})</Text>}
+        </Box>
+      ))}
+    </>
   );
+});
 
-  const renderInputList = (list: ChannelData[]) =>
-    list.map((input) => (
-      <Box key={input.index}>
-        <Text color="gray">{input.channelId}</Text>
-        <Text> </Text>
-        <Text color="yellow">{getValue(input).padStart(10, " ")}</Text>
-        {input.name && <Text color="dim"> ({input.name})</Text>}
-      </Box>
-    ));
+export function MainScreen({ inputs, outputs, displayMode, connected }: MainScreenProps) {
+  const hx711Inputs = useMemo(
+    () => sortByIndex(inputs.filter((input) => normalizeChip(input.chip) === "hx711")),
+    [inputs],
+  );
+  const ads1115Inputs = useMemo(
+    () => sortByIndex(inputs.filter((input) => normalizeChip(input.chip) === "ads1115")),
+    [inputs],
+  );
 
   return (
     <Box flexDirection="column" padding={1}>
@@ -60,7 +73,7 @@ export function MainScreen({ inputs, outputs, displayMode, connected }: MainScre
               <Text bold underline>
                 HX711
               </Text>
-              {renderInputList(hx711Inputs)}
+              <InputChannelList displayMode={displayMode} list={hx711Inputs} />
             </Box>
           )}
           {ads1115Inputs.length > 0 && (
@@ -68,7 +81,7 @@ export function MainScreen({ inputs, outputs, displayMode, connected }: MainScre
               <Text bold underline>
                 ADS1115
               </Text>
-              {renderInputList(ads1115Inputs)}
+              <InputChannelList displayMode={displayMode} list={ads1115Inputs} />
             </Box>
           )}
         </Box>
@@ -85,7 +98,7 @@ export function MainScreen({ inputs, outputs, displayMode, connected }: MainScre
           <Box key={output.index}>
             <Text color="gray">{output.channelId}</Text>
             <Text> </Text>
-            <Text color="green">{getValue(output).padStart(10, " ")}</Text>
+            <Text color="green">{getValue(output, displayMode).padStart(10, " ")}</Text>
             {output.name && <Text color="dim"> ({output.name})</Text>}
           </Box>
         ))}
