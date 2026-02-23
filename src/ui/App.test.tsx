@@ -1,11 +1,26 @@
+import { render } from "ink-testing-library";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ModbusService } from "../modbus/service.ts";
-import { render } from "../test-utils/ink-testing-library.ts";
 import type { CalibrationConfig, ChannelData } from "../types/index.ts";
 import { indexToChannelId } from "../utils/config.ts";
 import { App } from "./App.tsx";
 
 const wait = () => new Promise((resolve) => setTimeout(resolve, 10));
+
+// Wait for condition with timeout
+const waitFor = async (
+  condition: () => boolean,
+  maxAttempts = 100,
+  interval = 10,
+): Promise<void> => {
+  for (let i = 0; i < maxAttempts; i++) {
+    if (condition()) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, interval));
+  }
+  throw new Error(`Timeout waiting for condition after ${maxAttempts * interval}ms`);
+};
 
 function createChannelData(
   index: number,
@@ -179,15 +194,22 @@ describe("App", () => {
       <App config={config} service={service as unknown as ModbusService} />,
     );
 
-    // Navigate to manual output screen
     stdin.write("o");
-    await wait();
+    await waitFor(() => (lastFrame() ?? "").includes("Manual Output Control"), 100, 10);
+
+    stdin.write("1");
+    await waitFor(() => (lastFrame() ?? "").includes("Input Value: 1"), 100, 10);
+
+    stdin.write("2");
+    await waitFor(() => (lastFrame() ?? "").includes("Input Value: 12"), 100, 10);
+
+    stdin.write("3");
+    await waitFor(() => (lastFrame() ?? "").includes("Input Value: 123"), 100, 10);
 
     const output = lastFrame();
-    // Verify the manual output screen is displayed and doesn't throw errors
-    expect(output).toBeDefined();
     expect(output).toContain("Manual Output Control");
-    expect(output).toContain("Controls:");
+    expect(output).toContain("Input Value:");
+    expect(output).toContain("123");
   });
 
   it("should change display mode only on main screen", async () => {
