@@ -2,6 +2,7 @@ import { render } from "ink-testing-library";
 import { describe, expect, it } from "vitest";
 import type { CalibrationConfig } from "../types/index.ts";
 import { ConfigScreen } from "./ConfigScreen.tsx";
+import { stripFrame } from "./test-utils.ts";
 
 describe("ConfigScreen", () => {
   it("should render config screen with calibrations", () => {
@@ -16,7 +17,7 @@ describe("ConfigScreen", () => {
 
     const { lastFrame } = render(<ConfigScreen config={config} />);
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Calibration Configuration");
     expect(output).toContain("Sensor 1");
     expect(output).toContain("Valve 1");
@@ -32,7 +33,7 @@ describe("ConfigScreen", () => {
 
     const { lastFrame } = render(<ConfigScreen config={config} />);
 
-    expect(lastFrame()).toContain("No input calibrations configured");
+    expect(stripFrame(lastFrame())).toContain("No input calibrations configured");
   });
 
   it("should show message when no output calibrations", () => {
@@ -44,7 +45,7 @@ describe("ConfigScreen", () => {
 
     const { lastFrame } = render(<ConfigScreen config={config} />);
 
-    expect(lastFrame()).toContain("No output calibrations configured");
+    expect(stripFrame(lastFrame())).toContain("No output calibrations configured");
   });
 
   it("should show keyboard controls", () => {
@@ -52,7 +53,7 @@ describe("ConfigScreen", () => {
 
     const { lastFrame } = render(<ConfigScreen config={config} />);
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("[M]ain");
     expect(output).toContain("[C]onfig");
     expect(output).toContain("[O]utput");

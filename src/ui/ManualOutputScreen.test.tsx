@@ -2,6 +2,7 @@ import { render } from "ink-testing-library";
 import { describe, expect, it, vi } from "vitest";
 import type { ChannelData } from "../types/index.ts";
 import { ManualOutputScreen } from "./ManualOutputScreen.tsx";
+import { stripFrame } from "./test-utils.ts";
 
 const wait = () => new Promise((resolve) => setTimeout(resolve, 10));
 
@@ -39,7 +40,7 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Manual Output Control");
     expect(output).toContain("AO00");
   });
@@ -50,7 +51,7 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("5000");
   });
 
@@ -60,7 +61,7 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Controls:");
   });
 
@@ -70,7 +71,7 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Selected: AO00");
   });
 
@@ -80,7 +81,7 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
-    expect(lastFrame()).toBeDefined();
+    expect(stripFrame(lastFrame())).toBeDefined();
   });
 
   it("should display channel names when available", () => {
@@ -89,7 +90,7 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Valve 1");
     expect(output).toContain("Valve 2");
   });
@@ -100,7 +101,7 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("GP8403");
   });
 
@@ -117,7 +118,7 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toMatch(/▶\s+AO00/);
   });
 
@@ -127,7 +128,7 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     for (const outputChannel of mockOutputs) {
       expect(output).toContain(outputChannel.channelId);
     }
@@ -150,7 +151,7 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={testOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("12346");
   });
 
@@ -164,7 +165,7 @@ describe("ManualOutputScreen", () => {
     stdin.write("2");
     await wait();
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Input Value: 12");
   });
 
@@ -177,7 +178,7 @@ describe("ManualOutputScreen", () => {
     stdin.write("\u001b[A");
     await wait();
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Selected: AO02");
   });
 
@@ -190,7 +191,7 @@ describe("ManualOutputScreen", () => {
     stdin.write("\u001b[B");
     await wait();
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Selected: AO01");
   });
 
@@ -204,7 +205,7 @@ describe("ManualOutputScreen", () => {
     stdin.write("+");
     await wait();
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Input Value: 105");
   });
 
@@ -218,7 +219,7 @@ describe("ManualOutputScreen", () => {
     stdin.write("-");
     await wait();
 
-    expect(lastFrame()).toBeDefined();
+    expect(stripFrame(lastFrame())).toBeDefined();
   });
 
   it("should handle Z key to set value to 0", async () => {
@@ -230,7 +231,7 @@ describe("ManualOutputScreen", () => {
     stdin.write("z");
     await wait();
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Input Value: 0");
   });
 
@@ -243,7 +244,7 @@ describe("ManualOutputScreen", () => {
     stdin.write("x");
     await wait();
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Input Value: 5000");
   });
 
@@ -256,7 +257,7 @@ describe("ManualOutputScreen", () => {
     stdin.write("c");
     await wait();
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Input Value: 10000");
   });
 
@@ -272,7 +273,7 @@ describe("ManualOutputScreen", () => {
     stdin.write("\u0008");
     await wait();
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Input Value: 12");
   });
 
@@ -304,7 +305,7 @@ describe("ManualOutputScreen", () => {
     stdin.write("9");
     await wait();
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Input Value: 9999");
   });
 
@@ -319,7 +320,7 @@ describe("ManualOutputScreen", () => {
     stdin.write("$");
     await wait();
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Input Value: —");
   });
 
@@ -339,7 +340,7 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={outputsWithoutNames} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("AO00");
     expect(output).toContain("[GP8403]");
   });
@@ -376,7 +377,7 @@ describe("ManualOutputScreen", () => {
       <ManualOutputScreen onSetOutput={mockSetOutput} outputs={mixedOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("AO00");
     expect(output).toContain("AO01");
     expect(output).toContain("AO02");

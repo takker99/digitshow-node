@@ -2,6 +2,7 @@ import { render } from "ink-testing-library";
 import { describe, expect, it } from "vitest";
 import type { ChannelData } from "../types/index.ts";
 import { MainScreen } from "./MainScreen.tsx";
+import { stripFrame } from "./test-utils.ts";
 
 describe("MainScreen", () => {
   const mockInputs: ChannelData[] = [
@@ -18,7 +19,7 @@ describe("MainScreen", () => {
       <MainScreen connected={true} displayMode="raw" inputs={mockInputs} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Modbus RTU Soil Testing Monitor");
     expect(output).toContain("● Connected");
     expect(output).toContain("Mode: RAW");
@@ -29,7 +30,7 @@ describe("MainScreen", () => {
       <MainScreen connected={false} displayMode="raw" inputs={mockInputs} outputs={mockOutputs} />,
     );
 
-    expect(lastFrame()).toContain("○ Disconnected");
+    expect(stripFrame(lastFrame())).toContain("○ Disconnected");
   });
 
   it("should display raw values in raw mode", () => {
@@ -37,7 +38,7 @@ describe("MainScreen", () => {
       <MainScreen connected={true} displayMode="raw" inputs={mockInputs} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("1000");
     expect(output).toContain("2000");
     expect(output).toContain("500");
@@ -53,7 +54,7 @@ describe("MainScreen", () => {
       />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("100.0000");
     expect(output).toContain("200.0000");
     expect(output).toContain("50.0000");
@@ -64,7 +65,7 @@ describe("MainScreen", () => {
       <MainScreen connected={true} displayMode="raw" inputs={mockInputs} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("Sensor 1");
     expect(output).toContain("Valve 1");
   });
@@ -74,7 +75,7 @@ describe("MainScreen", () => {
       <MainScreen connected={true} displayMode="raw" inputs={mockInputs} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("HX711");
     expect(output).toContain("GP8403");
   });
@@ -84,7 +85,7 @@ describe("MainScreen", () => {
       <MainScreen connected={true} displayMode="raw" inputs={mockInputs} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("[M]ain");
     expect(output).toContain("[C]onfig");
     expect(output).toContain("[O]utput");
@@ -108,7 +109,7 @@ describe("MainScreen", () => {
       <MainScreen connected={true} displayMode="raw" inputs={mixedInputs} outputs={mockOutputs} />,
     );
 
-    const output = lastFrame();
+    const output = stripFrame(lastFrame());
     expect(output).toContain("HX711");
     expect(output).toContain("ADS1115");
   });
