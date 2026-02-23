@@ -1,18 +1,53 @@
-import { applyCalibration } from "../calibration/index.ts";
+import { applyCalibration } from "../calibration.ts";
 import type { CalibrationConfig, ChannelData } from "../types/index.ts";
 import { getChipType, indexToChannelId } from "../utils/config.ts";
-import { ModbusClient } from "./client.ts";
+import type { IModbusClient } from "./client.ts";
 
-export interface IModbusService {
+/** Provides read-only connection state. */
+export interface IConnectionStatus {
+  /** Returns `true` when the Modbus device is currently connected. */
   getConnectionStatus(): boolean;
+}
+
+/** Provides reactive access to channel data. */
+export interface IDataSource {
+  /** Returns the current calibrated input channel data. */
   getInputData(): ChannelData[];
+  /** Returns the current calibrated output channel data. */
   getOutputData(): ChannelData[];
+  /**
+   * Subscribes to data change events.
+   * @param listener - Called whenever new input or output data is available.
+   * @returns An unsubscribe function that removes this listener.
+   */
   onChange(listener: (inputs: ChannelData[], outputs: ChannelData[]) => void): () => void;
+}
+
+/** Allows writing to output channels. */
+export interface IOutputControl {
+  /**
+   * Sets the raw value for an output channel.
+   * @param index - Zero-based output channel index (0–7).
+   * @param value - Raw output value (0–10000).
+   */
   setOutput(index: number, value: number): void;
 }
 
+/**
+ * Full service interface exposed to the UI layer.
+ * Composes the three focused sub-interfaces.
+ */
+export interface IModbusService extends IConnectionStatus, IDataSource, IOutputControl {}
+
+/**
+ * Orchestrates Modbus RTU polling and data transformation.
+ *
+ * Reads input registers (FC04) every 100 ms, applies calibration, and notifies
+ * registered listeners. Writes output registers (FC16) when outputs change.
+ * Implements automatic reconnection on connection loss.
+ */
 export class ModbusService implements IModbusService {
-  #client: ModbusClient;
+  #client: IModbusClient;
   #config: CalibrationConfig;
   #inputs: number[] = Array(16).fill(0);
   #outputs: number[] = Array(8).fill(0);
@@ -21,8 +56,12 @@ export class ModbusService implements IModbusService {
   #listeners: Array<(inputs: ChannelData[], outputs: ChannelData[]) => void> = [];
   #reconnecting = false;
 
-  constructor(port: string, config: CalibrationConfig, slaveId = 1) {
-    this.#client = new ModbusClient(port, slaveId);
+  /**
+   * @param client - Modbus client dependency (injected for testability).
+   * @param config - Calibration configuration applied to raw register values.
+   */
+  constructor(client: IModbusClient, config: CalibrationConfig) {
+    this.#client = client;
     this.#config = config;
   }
 

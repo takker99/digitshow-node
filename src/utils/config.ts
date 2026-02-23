@@ -4,10 +4,14 @@ import yaml from "js-yaml";
 import { type CalibrationConfig, CalibrationConfigSchema } from "../types/index.ts";
 
 /**
- * Load calibration config from a file
- * Supports both YAML and JSON formats
+ * Loads and validates a calibration configuration file.
+ *
+ * Supports both YAML (`.yaml` / `.yml`) and JSON formats.
+ *
+ * @param filePath - Path to the configuration file (relative or absolute).
+ * @returns The validated calibration configuration.
  */
-export function loadCalibrationConfig(filePath: string): CalibrationConfig {
+export const loadCalibrationConfig = (filePath: string): CalibrationConfig => {
   const fullPath = path.resolve(filePath);
   const content = fs.readFileSync(fullPath, "utf-8");
 
@@ -20,40 +24,55 @@ export function loadCalibrationConfig(filePath: string): CalibrationConfig {
 
   // Validate and parse with schema
   return CalibrationConfigSchema.parse(data);
-}
+};
 
 /**
- * Convert channel index to channel ID
- * Input channels: AI00 (0), AI01 (1), ..., AI15 (15)
- * Output channels: AO00 (0), AO01 (1), ..., AO07 (7)
+ * Converts a zero-based channel array index to a human-readable channel ID.
+ *
+ * Input channels use the prefix `AI` (e.g., `AI00`–`AI15`).
+ * Output channels use the prefix `AO` (e.g., `AO00`–`AO07`).
+ *
+ * @param index - Zero-based channel index.
+ * @param isOutput - `true` for output channels, `false` for input channels.
+ * @returns The channel ID string (e.g., `"AI03"` or `"AO01"`).
  */
-export function indexToChannelId(index: number, isOutput: boolean): string {
+export const indexToChannelId = (index: number, isOutput: boolean): string => {
   const prefix = isOutput ? "AO" : "AI";
   return `${prefix}${index.toString().padStart(2, "0")}`;
-}
+};
 
 /**
- * Convert channel ID to index
+ * Converts a channel ID string to its zero-based array index.
+ *
+ * @param channelId - A channel ID in the format `AI##` or `AO##`.
+ * @returns The zero-based index.
+ * @throws If the channel ID format is invalid.
  */
-export function channelIdToIndex(channelId: string): number {
+export const channelIdToIndex = (channelId: string): number => {
   const match = channelId.match(/^[A-Z]{2}(\d+)$/);
   if (!match) {
     throw new Error(`Invalid channel ID format: ${channelId}`);
   }
   return parseInt(match[1], 10);
-}
+};
 
 /**
- * Check if channel ID is an output channel
+ * Returns `true` when the given channel ID represents an output channel (prefix `AO`).
+ *
+ * @param channelId - A channel ID string (e.g., `"AO00"` or `"AI03"`).
  */
-export function isOutputChannel(channelId: string): boolean {
-  return channelId.startsWith("AO");
-}
+export const isOutputChannel = (channelId: string): boolean => channelId.startsWith("AO");
 
 /**
- * Get chip type based on channel index
+ * Determines the chip type associated with a given input channel index.
+ *
+ * Channels 0–7 correspond to HX711, channels 8–15 to ADS1115.
+ * Any other index is treated as GP8403 (output chip).
+ *
+ * @param index - Zero-based channel index.
+ * @returns The chip type string.
  */
-export function getChipType(index: number): "HX711" | "ADS1115" | "GP8403" {
+export const getChipType = (index: number): "HX711" | "ADS1115" | "GP8403" => {
   if (index >= 0 && index <= 7) {
     return "HX711";
   }
@@ -61,4 +80,4 @@ export function getChipType(index: number): "HX711" | "ADS1115" | "GP8403" {
     return "ADS1115";
   }
   return "GP8403";
-}
+};

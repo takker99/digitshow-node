@@ -4,6 +4,7 @@ import { render } from "ink";
  * Demo script for testing the UI without Modbus hardware
  * This creates a mock service that simulates sensor data
  */
+import { applyCalibration } from "./calibration.ts";
 import type { IModbusService } from "./modbus/service.ts";
 import type { CalibrationConfig, ChannelData } from "./types/index.ts";
 import { App } from "./ui/App.tsx";
@@ -65,9 +66,7 @@ class MockModbusService implements IModbusService {
       const chip = index <= 7 ? ("HX711" as const) : ("ADS1115" as const);
       const channelId = `AI${index.toString().padStart(2, "0")}`;
       const calibConfig = config.inputs?.[channelId];
-      const calibrated = calibConfig
-        ? this.#applyCalibration(raw, calibConfig.factors as number[])
-        : raw;
+      const calibrated = calibConfig ? applyCalibration(raw, calibConfig.factors as number[]) : raw;
 
       return {
         calibrated,
@@ -85,9 +84,7 @@ class MockModbusService implements IModbusService {
       const chip = "GP8403" as const;
       const channelId = `AO${index.toString().padStart(2, "0")}`;
       const calibConfig = config.outputs?.[channelId];
-      const calibrated = calibConfig
-        ? this.#applyCalibration(raw, calibConfig.factors as number[])
-        : raw;
+      const calibrated = calibConfig ? applyCalibration(raw, calibConfig.factors as number[]) : raw;
 
       return {
         calibrated,
@@ -98,10 +95,6 @@ class MockModbusService implements IModbusService {
         raw,
       };
     });
-  }
-
-  #applyCalibration(raw: number, factors: number[]): number {
-    return factors.reduce((sum, coeff, power) => sum + coeff * raw ** power, 0);
   }
 
   setOutput(index: number, value: number): void {

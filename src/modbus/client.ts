@@ -1,7 +1,37 @@
 import ModbusRTU from "modbus-serial";
-import { int16ToNumber, numberToUint16 } from "../calibration/index.ts";
+import { int16ToNumber, numberToUint16 } from "../calibration.ts";
 
-export class ModbusClient {
+/**
+ * Contract for Modbus RTU communication.
+ *
+ * Depends on this abstraction rather than the concrete `ModbusClient` class
+ * to enable constructor injection and testing with mock implementations.
+ */
+export interface IModbusClient {
+  /** Opens the serial connection to the Modbus device. */
+  connect(): Promise<void>;
+  /** Reads 16 input registers (FC04) and returns signed int16 values. */
+  readInputs(): Promise<number[]>;
+  /**
+   * Writes 8 output registers (FC16) with values clamped to 0–10000.
+   * @param values - Exactly 8 uint16 output values.
+   */
+  writeOutputs(values: number[]): Promise<void>;
+  /** Closes the serial connection. */
+  disconnect(): Promise<void>;
+  /** Re-establishes the serial connection after a disconnection. */
+  reconnect(): Promise<void>;
+  /** Returns `true` when the serial port is currently open and ready. */
+  getConnectionStatus(): boolean;
+}
+
+/**
+ * Manages Modbus RTU communication with the hardware device.
+ *
+ * Connects over a serial port and exposes methods to read input registers
+ * and write output registers.
+ */
+export class ModbusClient implements IModbusClient {
   #client: ModbusRTU;
   #port: string;
   #slaveId: number;
@@ -10,6 +40,10 @@ export class ModbusClient {
   #maxReconnectAttempts = 10;
   #reconnectDelay = 1000; // ms
 
+  /**
+   * @param port - Serial port path (e.g., "/dev/ttyUSB0").
+   * @param slaveId - Modbus slave device ID (default: 1).
+   */
   constructor(port: string, slaveId = 1) {
     this.#client = new ModbusRTU();
     this.#port = port;

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { render } from "ink";
+import { ModbusClient } from "./modbus/client.ts";
 import { ModbusService } from "./modbus/service.ts";
 import type { CalibrationConfig } from "./types/index.ts";
 import { App } from "./ui/App.tsx";
@@ -65,7 +66,8 @@ if (configPath) {
 }
 
 // Create and start service
-const service = new ModbusService(port, config, slaveId);
+const client = new ModbusClient(port, slaveId);
+const service = new ModbusService(client, config);
 
 async function main() {
   try {
