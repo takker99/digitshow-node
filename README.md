@@ -109,21 +109,20 @@ Examples:
 ## Development
 
 ```bash
-# Run tests
+# Run tests with coverage
 pnpm test
 
-# Run tests with coverage
-pnpm test:coverage
-
-# Run linter
-pnpm lint
-
-# Format code
-pnpm format
-
-# Type check
-pnpm build
+# Type-check + lint
+pnpm check
 ```
+
+### Architecture & Coding Guidelines
+
+- **Quick reference**: [.github/copilot-instructions.md](.github/copilot-instructions.md)
+- **Detailed rules** (SOLID, pure functions, file organization, testing, JSR packages):
+  [.agents/skills/nodejs-solid-architecture/](.agents/skills/nodejs-solid-architecture/)
+- **React component optimization** (memo, useMemo, useCallback):
+  [.agents/skills/vercel-react-best-practices/](.agents/skills/vercel-react-best-practices/)
 
 ## Technology Stack
 
