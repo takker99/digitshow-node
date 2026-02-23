@@ -3,7 +3,15 @@ import type { CalibrationConfig, ChannelData } from "../types/index.ts";
 import { getChipType, indexToChannelId } from "../utils/config.ts";
 import { ModbusClient } from "./client.ts";
 
-export class ModbusService {
+export interface IModbusService {
+  getConnectionStatus(): boolean;
+  getInputData(): ChannelData[];
+  getOutputData(): ChannelData[];
+  onChange(listener: (inputs: ChannelData[], outputs: ChannelData[]) => void): () => void;
+  setOutput(index: number, value: number): void;
+}
+
+export class ModbusService implements IModbusService {
   #client: ModbusClient;
   #config: CalibrationConfig;
   #inputs: number[] = Array(16).fill(0);

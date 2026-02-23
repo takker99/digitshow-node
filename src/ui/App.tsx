@@ -1,13 +1,13 @@
 import { Box, useApp, useInput } from "ink";
 import { useCallback, useEffect, useState } from "react";
-import type { ModbusService } from "../modbus/service.ts";
+import type { IModbusService } from "../modbus/service.ts";
 import type { CalibrationConfig, ChannelData, DisplayMode, Screen } from "../types/index.ts";
 import { ConfigScreen } from "./ConfigScreen.tsx";
 import { MainScreen } from "./MainScreen.tsx";
 import { ManualOutputScreen } from "./ManualOutputScreen.tsx";
 
 interface AppProps {
-  service: ModbusService;
+  service: IModbusService;
   config: CalibrationConfig;
 }
 

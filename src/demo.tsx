@@ -4,7 +4,7 @@ import { render } from "ink";
  * Demo script for testing the UI without Modbus hardware
  * This creates a mock service that simulates sensor data
  */
-import { jsx as _jsx } from "react/jsx-runtime";
+import type { IModbusService } from "./modbus/service.ts";
 import type { CalibrationConfig, ChannelData } from "./types/index.ts";
 import { App } from "./ui/App.tsx";
 
@@ -24,7 +24,7 @@ const config: CalibrationConfig = {
 };
 
 // Mock service that simulates the ModbusService interface
-class MockModbusService {
+class MockModbusService implements IModbusService {
   #inputs: number[];
   #outputs: number[];
   #listeners: Array<(inputs: ChannelData[], outputs: ChannelData[]) => void>;
@@ -62,7 +62,7 @@ class MockModbusService {
 
   getInputData(): ChannelData[] {
     return this.#inputs.map((raw: number, index: number) => {
-      const chip = index <= 7 ? "HX711" : "ADS1115";
+      const chip = index <= 7 ? ("HX711" as const) : ("ADS1115" as const);
       const channelId = `AI${index.toString().padStart(2, "0")}`;
       const calibConfig = config.inputs?.[channelId];
       const calibrated = calibConfig
@@ -82,10 +82,9 @@ class MockModbusService {
 
   getOutputData(): ChannelData[] {
     return this.#outputs.map((raw: number, index: number) => {
-      const chip = "GP8403";
+      const chip = "GP8403" as const;
       const channelId = `AO${index.toString().padStart(2, "0")}`;
-      const key = `${index}` as keyof typeof config.outputs;
-      const calibConfig = config.outputs?.[key];
+      const calibConfig = config.outputs?.[channelId];
       const calibrated = calibConfig
         ? this.#applyCalibration(raw, calibConfig.factors as number[])
         : raw;
@@ -111,8 +110,11 @@ class MockModbusService {
     }
   }
 
-  onChange(listener: (inputs: ChannelData[], outputs: ChannelData[]) => void): void {
+  onChange(listener: (inputs: ChannelData[], outputs: ChannelData[]) => void): () => void {
     this.#listeners.push(listener);
+    return () => {
+      this.#listeners = this.#listeners.filter((l) => l !== listener);
+    };
   }
 
   getConnectionStatus(): boolean {
@@ -126,7 +128,7 @@ const service = new MockModbusService();
 await service.start();
 
 // Render the UI
-const { waitUntilExit } = render(_jsx(App, { config: config, service: service }), {
+const { waitUntilExit } = render(<App config={config} service={service} />, {
   incrementalRendering: true,
 });
 
