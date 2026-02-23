@@ -1,0 +1,51 @@
+{
+  "author": "takker99",
+  "bin": {
+    "digitshow": "./dist/index.js"
+  },
+  "dependencies": {
+    "ink": "^6.7.0",
+    "js-yaml": "^4.1.1",
+    "modbus-serial": "^8.0.23",
+    "react": "^19.2.4",
+    "zod": "^4.3.6"
+  },
+  "description": "Node.js Modbus RTU CLI for soil testing",
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.2",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^25.2.3",
+    "@types/react": "^19.2.14",
+    "@typescript/native-preview": "7.0.0-dev.20260217.1",
+    "@vitest/coverage-v8": "^4.0.18",
+    "ink-testing-library": "^4.0.0",
+    "skills": "^1.4.1",
+    "tsx": "^4.21.0",
+    "vitest": "^4.0.18"
+  },
+  "engines": {
+    "node": ">=22 <24"
+  },
+  "keywords": [
+    "modbus",
+    "rtu",
+    "soil",
+    "testing",
+    "cli"
+  ],
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "name": "digitshow-node",
+  "packageManager": "pnpm@10.29.3",
+  "scripts": {
+    "check": "biome check --write . && tsgo --noEmit",
+    "demo": "tsx src/demo.tsx",
+    "dev": "tsx --watch src/index.tsx --port /dev/ttyACM0 --config ds1.yaml",
+    "skills:install": "skills experimental_install",
+    "start": "tsx src/index.tsx --port /dev/ttyACM1 --config ds1.yaml",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest"
+  },
+  "type": "module",
+  "version": "1.0.0"
+}

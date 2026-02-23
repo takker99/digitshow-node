@@ -1,0 +1,41 @@
+# Sample Calibration Configuration for Modbus RTU Soil Testing
+# This file demonstrates the calibration configuration format
+#
+# Calibration factors are variable-length arrays representing polynomial coefficients:
+# [a0, a1, a2, ...] = a0 + a1*x + a2*x^2 + a3*x^3 + ...
+
+inputs:
+  AI00:
+    name: "Shear LC"
+    factors: [0, 0.000241353]
+  AI01:
+    name: "Vertical LC"
+    factors: [0, 0.000310774]
+  AI02:
+    name: "Shear LVDT"
+    factors: [0, 0.000703225]
+  AI03:
+    name: "Front Vertical LVDT"
+    factors: [0, 0.000237645]
+  AI04:
+    name: "Rear Vertical LVDT"
+    factors: [0, 0.000237689]
+  AI05:
+    name: "Front Friction LC"
+    factors: [0, 0.00004399001]
+  AI06:
+    name: "Rear Friction LC"
+    factors: [0, 0.00004399001]
+  AI07:
+    name: "Shear LVDT 2"
+    factors: [0, 0.000236096]
+
+outputs:
+  AO00:
+    name: "Water Valve"
+    factors: [0, 1]  # Direct mapping (identity)
+    enabled: false
+  AO01:
+    name: "Nutrient Pump"
+    factors: [0, 1]  # Direct mapping
+    enabled: false

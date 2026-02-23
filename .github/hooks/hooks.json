@@ -1,0 +1,18 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "command": ".github/hooks/scripts/biome-check.sh",
+        "timeout": 30,
+        "type": "command"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "command": ".github/hooks/scripts/pre-tool-use-commit.sh",
+        "timeout": 120,
+        "type": "command"
+      }
+    ]
+  }
+}
