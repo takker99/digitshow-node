@@ -19,6 +19,7 @@
     "@typescript/native-preview": "7.0.0-dev.20260217.1",
     "@vitest/coverage-v8": "^4.0.18",
     "ink-testing-library": "^4.0.0",
+    "skills": "^1.4.1",
     "tsx": "^4.21.0",
     "vitest": "^4.0.18"
   },
@@ -40,6 +41,7 @@
     "check": "biome check --write . && tsgo --noEmit",
     "demo": "tsx src/demo.tsx",
     "dev": "tsx --watch src/index.tsx --port /dev/ttyACM0 --config ds1.yaml",
+    "skills:install": "skills experimental_install",
     "start": "tsx src/index.tsx --port /dev/ttyACM1 --config ds1.yaml",
     "test": "vitest run --coverage",
     "test:watch": "vitest"
