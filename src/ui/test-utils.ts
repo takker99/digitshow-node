@@ -5,4 +5,5 @@ import { stripVTControlCharacters } from "node:util";
  * This is necessary because ink-testing-library may include ANSI escape sequences
  * when running in a TTY environment (e.g., VS Code Vitest extension).
  */
-export const stripFrame = (output: string): string => stripVTControlCharacters(output);
+export const stripFrame = (output: string | undefined): string =>
+  output ? stripVTControlCharacters(output) : "";
