@@ -1,5 +1,10 @@
 {
   "skills": {
+    "nodejs-solid-architecture": {
+      "computedHash": "8ae251468d0462fcc54c7189f70a54fceade900c10be2ed6bd771dd34ec4fa00",
+      "source": "/home/takker/git/digitshow-node/skills/nodejs-solid-architecture",
+      "sourceType": "local"
+    },
     "vercel-react-best-practices": {
       "computedHash": "4365be772fd3b41994a72ad478472c6d680678e7f3859860ab010e9c46e48ee0",
       "source": "vercel-labs/agent-skills",
