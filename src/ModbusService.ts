@@ -1,5 +1,7 @@
 import ModbusRTU from "modbus-serial";
 import { applyCalibration, int16ToNumber, numberToUint16 } from "./calibration.ts";
+import type { Logger } from "./logger.ts";
+import type { ConnectionStatusDetail } from "./types/connection.ts";
 import type { CalibrationConfig, ChannelData } from "./types.ts";
 import { getChipType, indexToChannelId } from "./utils/config.ts";
 
@@ -9,6 +11,11 @@ export interface IModbusService {
   getOutputData(): ChannelData[];
   onChange(listener: (inputs: ChannelData[], outputs: ChannelData[]) => void): () => void;
   setOutput(index: number, value: number): void;
+  start(signal?: AbortSignal): void;
+  stop(): Promise<void>;
+  restart(signal?: AbortSignal): Promise<void>;
+  onConnectionStateChange(listener: () => void): () => void;
+  getConnectionState(): ConnectionStatusDetail | undefined;
 }
 
 export class ModbusService implements IModbusService {
@@ -26,21 +33,35 @@ export class ModbusService implements IModbusService {
   #previousOutputs: number[] = Array(8).fill(0);
   #intervalId?: NodeJS.Timeout;
   #listeners: Array<(inputs: ChannelData[], outputs: ChannelData[]) => void> = [];
+  #connecting = false;
   #reconnecting = false;
+  #pollInProgress = false;
+  #connectionState: ConnectionStatusDetail | undefined;
+  #connectionStateListeners: Set<() => void> = new Set();
+  #logger: Logger;
 
-  constructor(port: string, config: CalibrationConfig, slaveId = 1) {
+  constructor(port: string, config: CalibrationConfig, logger: Logger, slaveId = 1) {
     this.#modbusRTU = new ModbusRTU();
     this.#port = port;
     this.#slaveId = slaveId;
     this.#config = config;
+    this.#logger = logger;
   }
 
-  async start(): Promise<void> {
-    await this.#connect();
+  start(signal?: AbortSignal): void {
+    // Start connection attempt in background without awaiting
+    this.#connecting = true;
+    this.#connect(signal)
+      .catch((error) => {
+        this.#logger.error(`Failed to connect: ${error}`);
+      })
+      .finally(() => {
+        this.#connecting = false;
+      });
 
     // Poll FC04 every 100ms
     this.#intervalId = setInterval(() => {
-      this.#poll();
+      this.#poll(signal);
     }, 100);
   }
 
@@ -52,9 +73,36 @@ export class ModbusService implements IModbusService {
     await this.#disconnect();
   }
 
-  async #connect(): Promise<void> {
+  async restart(signal?: AbortSignal): Promise<void> {
+    await this.stop();
+    this.#connecting = true;
+    try {
+      await this.#connect(signal);
+    } finally {
+      this.#connecting = false;
+    }
+
+    // Restart polling
+    this.#intervalId = setInterval(() => {
+      this.#poll(signal);
+    }, 100);
+  }
+
+  async #connect(signal?: AbortSignal): Promise<void> {
     while (!this.#isConnected && this.#reconnectAttempts < this.#maxReconnectAttempts) {
+      if (signal?.aborted) {
+        throw new Error("Connection aborted");
+      }
+
       try {
+        // Update connection state
+        this.#updateConnectionState({
+          attempt: this.#reconnectAttempts + 1,
+          maxAttempts: this.#maxReconnectAttempts,
+          port: this.#port,
+          type: "connect-attempt",
+        });
+
         await this.#modbusRTU.connectRTUBuffered(this.#port, {
           baudRate: 38400,
         });
@@ -62,26 +110,42 @@ export class ModbusService implements IModbusService {
         this.#modbusRTU.setTimeout(1000);
         this.#isConnected = true;
         this.#reconnectAttempts = 0;
-        console.log(`Connected to Modbus device on ${this.#port}`);
+
+        // Update connection state
+        this.#updateConnectionState({
+          port: this.#port,
+          type: "connect-success",
+        });
+
+        this.#logger.info(`Connected to Modbus device on ${this.#port}`);
       } catch (error) {
         this.#reconnectAttempts++;
         if (this.#reconnectAttempts >= this.#maxReconnectAttempts) {
-          throw new Error(
-            `Failed to connect after ${this.#maxReconnectAttempts} attempts: ${error}`,
-          );
+          const errorMessage = `Failed to connect after ${this.#maxReconnectAttempts} attempts: ${error}`;
+          this.#updateConnectionState({
+            attempt: this.#reconnectAttempts,
+            errorMessage,
+            maxAttempts: this.#maxReconnectAttempts,
+            port: this.#port,
+            retryDelayMs: 0,
+            type: "connect-error",
+          });
+          throw new Error(errorMessage);
         }
-        console.log(
+
+        this.#logger.warn(
           `Connection attempt ${this.#reconnectAttempts}/${this.#maxReconnectAttempts} failed, retrying in ${this.#reconnectDelay}ms...`,
         );
-        await new Promise((resolve) => setTimeout(resolve, this.#reconnectDelay));
+
+        await this.#delay(this.#reconnectDelay, signal);
       }
     }
   }
 
-  async #reconnect(): Promise<void> {
+  async #reconnect(signal?: AbortSignal): Promise<void> {
     this.#isConnected = false;
     await this.#disconnect();
-    await this.#connect();
+    await this.#connect(signal);
   }
 
   async #disconnect(): Promise<void> {
@@ -89,6 +153,30 @@ export class ModbusService implements IModbusService {
       this.#modbusRTU.close(() => {});
       this.#isConnected = false;
     }
+  }
+
+  /**
+   * Cancellable delay helper.
+   * Respects AbortSignal for graceful shutdown.
+   */
+  async #delay(ms: number, signal?: AbortSignal): Promise<void> {
+    return new Promise((resolve, reject) => {
+      if (signal?.aborted) {
+        reject(new Error("Aborted"));
+        return;
+      }
+
+      const timeoutId = setTimeout(resolve, ms);
+
+      signal?.addEventListener(
+        "abort",
+        () => {
+          clearTimeout(timeoutId);
+          reject(new Error("Aborted"));
+        },
+        { once: true },
+      );
+    });
   }
 
   /**
@@ -135,7 +223,18 @@ export class ModbusService implements IModbusService {
     }
   }
 
-  async #poll(): Promise<void> {
+  async #poll(signal?: AbortSignal): Promise<void> {
+    // Skip if already polling to prevent concurrent polls
+    if (this.#pollInProgress) {
+      return;
+    }
+
+    if (signal?.aborted) {
+      return;
+    }
+
+    this.#pollInProgress = true;
+
     try {
       // Read inputs (FC04)
       this.#inputs = await this.#readInputs();
@@ -152,25 +251,27 @@ export class ModbusService implements IModbusService {
       // Reset reconnecting flag on successful poll
       if (this.#reconnecting) {
         this.#reconnecting = false;
-        console.log("Reconnected successfully");
+        this.#logger.info("Reconnected successfully");
       }
     } catch (error) {
-      console.error("Polling error:", error);
+      this.#logger.error(`Polling error: ${error}`);
 
       // Attempt to reconnect if not already reconnecting
-      if (!this.#reconnecting && !this.#isConnected) {
+      if (!this.#connecting && !this.#reconnecting && !this.#isConnected) {
         this.#reconnecting = true;
-        console.log("Connection lost, attempting to reconnect...");
+        this.#logger.warn("Connection lost, attempting to reconnect...");
 
         try {
-          await this.#reconnect();
-          console.log("Reconnection successful");
+          await this.#reconnect(signal);
+          this.#logger.info("Reconnection successful");
           this.#reconnecting = false;
         } catch (reconnectError) {
-          console.error("Reconnection failed:", reconnectError);
+          this.#logger.error(`Reconnection failed: ${reconnectError}`);
           // Will retry on next poll cycle
         }
       }
+    } finally {
+      this.#pollInProgress = false;
     }
   }
 
@@ -237,5 +338,71 @@ export class ModbusService implements IModbusService {
 
   getConnectionStatus(): boolean {
     return this.#isConnected;
+  }
+
+  onConnectionStateChange(listener: () => void): () => void {
+    this.#connectionStateListeners.add(listener);
+    return () => {
+      this.#connectionStateListeners.delete(listener);
+    };
+  }
+
+  getConnectionState(): ConnectionStatusDetail | undefined {
+    return this.#connectionState;
+  }
+
+  #updateConnectionState(
+    event:
+      | { type: "connect-attempt"; port: string; attempt: number; maxAttempts: number }
+      | { type: "connect-success"; port: string }
+      | {
+          type: "connect-error";
+          port: string;
+          attempt: number;
+          maxAttempts: number;
+          errorMessage: string;
+          retryDelayMs: number;
+        }
+      | { type: "disconnect" },
+  ): void {
+    const prevState = this.#connectionState;
+
+    // Compute next state
+    if (event.type === "connect-attempt") {
+      this.#connectionState = {
+        attemptNumber: event.attempt,
+        maxAttempts: event.maxAttempts,
+        port: event.port,
+        state: "connecting",
+      };
+    } else if (event.type === "connect-success") {
+      this.#connectionState = {
+        attemptNumber: 0,
+        maxAttempts: 0,
+        port: event.port,
+        state: "connected",
+      };
+    } else if (event.type === "connect-error") {
+      this.#connectionState = {
+        attemptNumber: event.attempt,
+        errorMessage: event.errorMessage,
+        maxAttempts: event.maxAttempts,
+        port: event.port,
+        retryDelayMs: event.retryDelayMs,
+        state: "error",
+      };
+    } else if (event.type === "disconnect") {
+      this.#connectionState = {
+        attemptNumber: 0,
+        maxAttempts: 0,
+        port: prevState?.port ?? "unknown",
+        state: "connecting",
+      };
+    }
+
+    // Notify listeners
+    this.#connectionStateListeners.forEach((listener) => {
+      listener();
+    });
   }
 }

@@ -37,4 +37,4 @@ export interface ChannelData {
 export type DisplayMode = "raw" | "calibrated";
 
 // Screen types
-export type Screen = "main" | "config" | "manual";
+export type Screen = "main" | "config" | "manual" | "connection";
