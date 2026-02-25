@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 import { render } from "ink";
+import { ConsoleLogger } from "./logger.ts";
 /**
  * Demo script for testing the UI without Modbus hardware
  * This creates a mock service that simulates sensor data
  */
 import type { IModbusService } from "./ModbusService.ts";
+import type { ConnectionStatusDetail } from "./types/connection.ts";
 import type { CalibrationConfig, ChannelData } from "./types.ts";
 import { App } from "./ui/App.tsx";
 
@@ -27,19 +29,26 @@ const config: CalibrationConfig = {
 class MockModbusService implements IModbusService {
   #inputs: number[];
   #outputs: number[];
-  #listeners: Array<(inputs: ChannelData[], outputs: ChannelData[]) => void>;
+  #listeners: Array<(inputs: ChannelData[], outputs: ChannelData[]) => void> = [];
+  #connectionStateListeners: Set<() => void> = new Set();
   #connected: boolean;
+  #connectionState: ConnectionStatusDetail | undefined;
 
   constructor() {
     this.#inputs = Array(16)
       .fill(0)
       .map(() => Math.floor(Math.random() * 10000));
     this.#outputs = Array(8).fill(0);
-    this.#listeners = [];
     this.#connected = true;
+    this.#connectionState = {
+      attemptNumber: 0,
+      maxAttempts: 0,
+      port: "/dev/mock",
+      state: "connected",
+    };
   }
 
-  async start(): Promise<void> {
+  start(_signal?: AbortSignal): void {
     // Simulate polling with random data updates
     setInterval(() => {
       // Update with some random variations
@@ -50,6 +59,21 @@ class MockModbusService implements IModbusService {
 
   async stop(): Promise<void> {
     this.#connected = false;
+  }
+
+  async restart(_signal?: AbortSignal): Promise<void> {
+    this.#connected = true;
+  }
+
+  onConnectionStateChange(listener: () => void): () => void {
+    this.#connectionStateListeners.add(listener);
+    return () => {
+      this.#connectionStateListeners.delete(listener);
+    };
+  }
+
+  getConnectionState(): ConnectionStatusDetail | undefined {
+    return this.#connectionState;
   }
 
   #notifyListeners(): void {
@@ -124,15 +148,18 @@ class MockModbusService implements IModbusService {
 
 console.log("Starting Demo Mode (Mock Data)...\n");
 
+const logger = new ConsoleLogger();
 const service = new MockModbusService();
-await service.start();
+service.start();
 
 // Render the UI
-const { waitUntilExit } = render(<App config={config} service={service} />, {
+const { waitUntilExit } = render(<App config={config} logger={logger} service={service} />, {
   incrementalRendering: true,
 });
 
 // Wait for the app to exit
-await waitUntilExit();
-
-console.log("\nDemo ended.");
+waitUntilExit().then(async () => {
+  await service.stop();
+  console.log("\nDemo ended.");
+  process.exit(0);
+});

@@ -1,39 +1,57 @@
 import { Box, useApp, useInput } from "ink";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useConnectionStatus, useModbusData } from "../hooks/use-modbus-service.ts";
+import type { ObservableLogger } from "../logger.ts";
 import type { IModbusService } from "../ModbusService.ts";
-import type { CalibrationConfig, ChannelData, DisplayMode, Screen } from "../types.ts";
+import type { CalibrationConfig, DisplayMode, Screen } from "../types.ts";
 import { ConfigScreen } from "./ConfigScreen.tsx";
+import { ConnectionScreen } from "./ConnectionScreen.tsx";
+import { LogPanel } from "./LogPanel.tsx";
 import { MainScreen } from "./MainScreen.tsx";
 import { ManualOutputScreen } from "./ManualOutputScreen.tsx";
 
 interface AppProps {
   service: IModbusService;
   config: CalibrationConfig;
+  logger: ObservableLogger;
 }
 
-export function App({ service, config }: AppProps) {
+export function App({ service, config, logger }: AppProps) {
   const { exit } = useApp();
+  const abortRef = useRef(new AbortController());
   const [screen, setScreen] = useState<Screen>("main");
   const [displayMode, setDisplayMode] = useState<DisplayMode>("raw");
-  const [data, setData] = useState<{
-    inputs: ChannelData[];
-    outputs: ChannelData[];
-    connected: boolean;
-  }>(() => ({
-    connected: service.getConnectionStatus(),
-    inputs: service.getInputData(),
-    outputs: service.getOutputData(),
-  }));
 
+  // Subscribe to Modbus data via useSyncExternalStore
+  const { inputs, outputs } = useModbusData(service);
+
+  // Subscribe to connection status via useSyncExternalStore
+  const connectionState = useConnectionStatus(service);
+  const connected = connectionState?.state === "connected";
+
+  // Start service and abort on unmount
   useEffect(() => {
-    return service.onChange((newInputs, newOutputs) => {
-      setData({ connected: service.getConnectionStatus(), inputs: newInputs, outputs: newOutputs });
-    });
+    service.start(abortRef.current.signal);
+    return () => {
+      abortRef.current.abort();
+    };
   }, [service]);
+
+  // Sync connection state to screen state
+  useEffect(() => {
+    if (connectionState?.state === "connected" && screen === "connection") {
+      setScreen("main");
+    } else if (connectionState?.state === "connecting") {
+      setScreen("connection");
+    } else if (connectionState?.state === "error") {
+      setScreen("connection");
+    }
+  }, [connectionState?.state, screen]);
 
   useInput((input, _key) => {
     // Global navigation
     if (input === "q" || input === "Q") {
+      abortRef.current.abort();
       exit();
       return;
     }
@@ -44,7 +62,6 @@ export function App({ service, config }: AppProps) {
     }
 
     // C key only for navigation when not in manual screen
-    // (manual screen uses C for "set to 10000")
     if (input === "c" || input === "C") {
       if (screen !== "manual") {
         setScreen("config");
@@ -65,6 +82,13 @@ export function App({ service, config }: AppProps) {
         setDisplayMode("calibrated");
       }
     }
+
+    // Connection screen retry
+    if (screen === "connection" && (input === "r" || input === "R")) {
+      service.restart().catch((err) => {
+        logger.error(`Restart failed: ${err}`);
+      });
+    }
   });
 
   const handleSetOutput = useCallback(
@@ -76,18 +100,31 @@ export function App({ service, config }: AppProps) {
 
   return (
     <Box flexDirection="column">
-      {screen === "main" && (
-        <MainScreen
-          connected={data.connected}
-          displayMode={displayMode}
-          inputs={data.inputs}
-          outputs={data.outputs}
+      {/* Show connection screen if not connected */}
+      {!connected && connectionState && (
+        <ConnectionScreen
+          connectionState={connectionState}
+          key={`connection-${connectionState.state}`}
         />
       )}
-      {screen === "config" && <ConfigScreen config={config} />}
-      {screen === "manual" && (
-        <ManualOutputScreen onSetOutput={handleSetOutput} outputs={data.outputs} />
+
+      {/* Main screens (shown when connected) */}
+      {screen === "main" && connected && (
+        <MainScreen
+          connected={connected}
+          displayMode={displayMode}
+          inputs={inputs}
+          key="main-screen"
+          outputs={outputs}
+        />
       )}
+      {screen === "config" && connected && <ConfigScreen config={config} key="config-screen" />}
+      {screen === "manual" && connected && (
+        <ManualOutputScreen key="manual-screen" onSetOutput={handleSetOutput} outputs={outputs} />
+      )}
+
+      {/* Log panel (shown in bottom of main content) */}
+      <LogPanel key="log-panel" logger={logger} maxLines={5} />
     </Box>
   );
 }

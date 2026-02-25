@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { render } from "ink";
+import { ConsoleLogger } from "./logger.ts";
 import { ModbusService } from "./ModbusService.ts";
+import { ModbusRtuClient } from "./modbus/client.ts";
 import type { CalibrationConfig } from "./types.ts";
 import { App } from "./ui/App.tsx";
 import { loadCalibrationConfig } from "./utils/config.ts";
@@ -64,32 +66,17 @@ if (configPath) {
   }
 }
 
-// Create and start service
-const service = new ModbusService(port, config, slaveId);
+// Create logger and service
+const logger = new ConsoleLogger();
+const client = new ModbusRtuClient(port, slaveId);
+const service = new ModbusService(port, config, logger, client);
 
-async function main() {
-  try {
-    console.log(`Connecting to Modbus RTU on ${port}...`);
-    await service.start();
-    console.log("Connected! Starting UI...\n");
-
-    // Render the UI
-    const { waitUntilExit } = render(<App config={config} service={service} />, {
-      incrementalRendering: true,
-    });
-
-    // Wait for the app to exit
-    await waitUntilExit();
-
-    // Cleanup
-    console.log("\nShutting down...");
-    await service.stop();
-    console.log("Goodbye!");
-  } catch (error) {
-    console.error("Error:", error);
-    await service.stop();
-    process.exit(1);
-  }
+try {
+  const { waitUntilExit } = render(<App config={config} logger={logger} service={service} />);
+  await waitUntilExit();
+} catch (error) {
+  console.error("Fatal error:", error);
+} finally {
+  await service.stop();
+  process.exit(0);
 }
-
-main();

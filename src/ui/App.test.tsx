@@ -1,5 +1,6 @@
 import { render } from "ink-testing-library";
 import { describe, expect, it, vi } from "vitest";
+import type { ObservableLogger } from "../logger.ts";
 import type { IModbusService } from "../ModbusService.ts";
 import type { CalibrationConfig, ChannelData } from "../types.ts";
 import { App } from "./App.tsx";
@@ -17,11 +18,33 @@ function createMockService(overrides?: Partial<IModbusService>): IModbusService 
   ];
 
   return {
+    getConnectionState: vi.fn(() => ({
+      attemptNumber: 0,
+      maxAttempts: 0,
+      port: "/dev/mock",
+      state: "connected" as const,
+    })),
     getConnectionStatus: vi.fn(() => true),
     getInputData: vi.fn(() => mockInputs),
     getOutputData: vi.fn(() => mockOutputs),
     onChange: vi.fn(() => () => {}),
+    onConnectionStateChange: vi.fn(() => () => {}),
+    restart: vi.fn(),
     setOutput: vi.fn(),
+    start: vi.fn(),
+    stop: vi.fn(),
+    ...overrides,
+  };
+}
+
+function createMockLogger(overrides?: Partial<ObservableLogger>): ObservableLogger {
+  return {
+    debug: vi.fn(),
+    error: vi.fn(),
+    getLogs: vi.fn(() => []),
+    info: vi.fn(),
+    subscribe: vi.fn(() => () => {}),
+    warn: vi.fn(),
     ...overrides,
   };
 }
@@ -38,7 +61,8 @@ const mockConfig: CalibrationConfig = {
 describe("App", () => {
   it("should render main screen by default", () => {
     const service = createMockService();
-    const { lastFrame } = render(<App config={mockConfig} service={service} />);
+    const logger = createMockLogger();
+    const { lastFrame } = render(<App config={mockConfig} logger={logger} service={service} />);
 
     const output = stripFrame(lastFrame());
     expect(output).toContain("Modbus RTU Soil Testing Monitor");
@@ -46,29 +70,51 @@ describe("App", () => {
 
   it("should show connection status from service", () => {
     const service = createMockService({ getConnectionStatus: vi.fn(() => true) });
-    const { lastFrame } = render(<App config={mockConfig} service={service} />);
+    const logger = createMockLogger();
+    const { lastFrame } = render(<App config={mockConfig} logger={logger} service={service} />);
 
     expect(stripFrame(lastFrame())).toContain("● Connected");
   });
 
   it("should show disconnected status when service is not connected", () => {
-    const service = createMockService({ getConnectionStatus: vi.fn(() => false) });
-    const { lastFrame } = render(<App config={mockConfig} service={service} />);
+    const service = createMockService({
+      getConnectionState: vi.fn(() => ({
+        attemptNumber: 1,
+        errorMessage: "Test error",
+        maxAttempts: 10,
+        port: "/dev/mock",
+        state: "error" as const,
+      })),
+      getConnectionStatus: vi.fn(() => false),
+    });
+    const logger = createMockLogger();
+    const { lastFrame } = render(<App config={mockConfig} logger={logger} service={service} />);
 
-    expect(stripFrame(lastFrame())).toContain("○ Disconnected");
+    expect(stripFrame(lastFrame())).toContain("Connection failed");
   });
 
   it("should subscribe to onChange on mount", () => {
     const service = createMockService();
-    render(<App config={mockConfig} service={service} />);
+    const logger = createMockLogger();
+    render(<App config={mockConfig} logger={logger} service={service} />);
 
     expect(service.onChange).toHaveBeenCalledOnce();
+  });
+
+  it("should call start on mount", () => {
+    const service = createMockService();
+    const logger = createMockLogger();
+    render(<App config={mockConfig} logger={logger} service={service} />);
+
+    expect(service.start).toHaveBeenCalledOnce();
   });
 
   it("should unsubscribe from onChange on unmount", () => {
     const unsubscribe = vi.fn();
     const service = createMockService({ onChange: vi.fn(() => unsubscribe) });
-    const { unmount } = render(<App config={mockConfig} service={service} />);
+    const { unmount } = render(
+      <App config={mockConfig} logger={createMockLogger()} service={service} />,
+    );
 
     unmount();
 
@@ -77,7 +123,9 @@ describe("App", () => {
 
   it("should navigate to config screen on C key", async () => {
     const service = createMockService();
-    const { lastFrame, stdin } = render(<App config={mockConfig} service={service} />);
+    const { lastFrame, stdin } = render(
+      <App config={mockConfig} logger={createMockLogger()} service={service} />,
+    );
 
     stdin.write("c");
     await wait();
@@ -87,7 +135,9 @@ describe("App", () => {
 
   it("should navigate to manual screen on O key", async () => {
     const service = createMockService();
-    const { lastFrame, stdin } = render(<App config={mockConfig} service={service} />);
+    const { lastFrame, stdin } = render(
+      <App config={mockConfig} logger={createMockLogger()} service={service} />,
+    );
 
     stdin.write("o");
     await wait();
@@ -97,7 +147,9 @@ describe("App", () => {
 
   it("should navigate back to main screen on M key from config", async () => {
     const service = createMockService();
-    const { lastFrame, stdin } = render(<App config={mockConfig} service={service} />);
+    const { lastFrame, stdin } = render(
+      <App config={mockConfig} logger={createMockLogger()} service={service} />,
+    );
 
     stdin.write("c");
     await wait();
@@ -109,7 +161,9 @@ describe("App", () => {
 
   it("should switch to raw mode on R key", async () => {
     const service = createMockService();
-    const { lastFrame, stdin } = render(<App config={mockConfig} service={service} />);
+    const { lastFrame, stdin } = render(
+      <App config={mockConfig} logger={createMockLogger()} service={service} />,
+    );
 
     stdin.write("r");
     await wait();
@@ -119,7 +173,9 @@ describe("App", () => {
 
   it("should switch to calibrated mode on L key", async () => {
     const service = createMockService();
-    const { lastFrame, stdin } = render(<App config={mockConfig} service={service} />);
+    const { lastFrame, stdin } = render(
+      <App config={mockConfig} logger={createMockLogger()} service={service} />,
+    );
 
     stdin.write("l");
     await wait();
@@ -136,7 +192,9 @@ describe("App", () => {
       }),
     });
 
-    const { lastFrame } = render(<App config={mockConfig} service={service} />);
+    const { lastFrame } = render(
+      <App config={mockConfig} logger={createMockLogger()} service={service} />,
+    );
 
     const newInputs: ChannelData[] = [
       {
@@ -162,7 +220,9 @@ describe("App", () => {
 
   it("should call setOutput on service when output is changed in manual screen", async () => {
     const service = createMockService();
-    const { lastFrame, stdin } = render(<App config={mockConfig} service={service} />);
+    const { lastFrame, stdin } = render(
+      <App config={mockConfig} logger={createMockLogger()} service={service} />,
+    );
 
     stdin.write("o");
     await wait();
@@ -182,7 +242,9 @@ describe("App", () => {
 
   it("should not navigate to config screen on C key when on manual screen", async () => {
     const service = createMockService();
-    const { lastFrame, stdin } = render(<App config={mockConfig} service={service} />);
+    const { lastFrame, stdin } = render(
+      <App config={mockConfig} logger={createMockLogger()} service={service} />,
+    );
 
     stdin.write("o");
     await wait();
@@ -199,7 +261,9 @@ describe("App", () => {
 
   it("should display input channel data on main screen", () => {
     const service = createMockService();
-    const { lastFrame } = render(<App config={mockConfig} service={service} />);
+    const { lastFrame } = render(
+      <App config={mockConfig} logger={createMockLogger()} service={service} />,
+    );
 
     const output = stripFrame(lastFrame());
     expect(output).toContain("AI00");
@@ -207,7 +271,9 @@ describe("App", () => {
 
   it("should display output channel data on main screen", () => {
     const service = createMockService();
-    const { lastFrame } = render(<App config={mockConfig} service={service} />);
+    const { lastFrame } = render(
+      <App config={mockConfig} logger={createMockLogger()} service={service} />,
+    );
 
     const output = stripFrame(lastFrame());
     expect(output).toContain("AO00");
