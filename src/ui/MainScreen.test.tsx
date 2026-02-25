@@ -1,6 +1,6 @@
 import { render } from "ink-testing-library";
 import { describe, expect, it } from "vitest";
-import type { ChannelData } from "../types/index.ts";
+import type { ChannelData } from "../types.ts";
 import { MainScreen } from "./MainScreen.tsx";
 import { stripFrame } from "./test-utils.ts";
 

@@ -1,4 +1,4 @@
-import type { CalibrationFactor } from "../types/index.ts";
+import type { CalibrationFactor } from "./types.ts";
 
 /**
  * Apply polynomial calibration

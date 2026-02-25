@@ -1,6 +1,6 @@
 import { Box, Text, useInput } from "ink";
 import { useState } from "react";
-import type { ChannelData } from "../types/index.ts";
+import type { ChannelData } from "../types.ts";
 
 interface ManualOutputScreenProps {
   outputs: ChannelData[];

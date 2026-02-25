@@ -1,6 +1,6 @@
 import { render } from "ink-testing-library";
 import { describe, expect, it } from "vitest";
-import type { CalibrationConfig } from "../types/index.ts";
+import type { CalibrationConfig } from "../types.ts";
 import { ConfigScreen } from "./ConfigScreen.tsx";
 import { stripFrame } from "./test-utils.ts";
 

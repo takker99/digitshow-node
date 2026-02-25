@@ -1,7 +1,7 @@
 import { render } from "ink-testing-library";
 import { describe, expect, it, vi } from "vitest";
-import type { IModbusService } from "../modbus/service.ts";
-import type { CalibrationConfig, ChannelData } from "../types/index.ts";
+import type { IModbusService } from "../ModbusService.ts";
+import type { CalibrationConfig, ChannelData } from "../types.ts";
 import { App } from "./App.tsx";
 import { stripFrame } from "./test-utils.ts";
 
