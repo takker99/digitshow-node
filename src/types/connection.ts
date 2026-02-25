@@ -92,6 +92,7 @@ export const computeNextConnectionState = (
     }
 
     // TypeScript exhaustiveness check - if event type not handled, compile error
+    /* v8 ignore next 4 */
     default: {
       const _exhaustive: never = event;
       return _exhaustive;

@@ -278,4 +278,84 @@ describe("App", () => {
     const output = stripFrame(lastFrame());
     expect(output).toContain("AO00");
   });
+
+  it("should call start with an AbortSignal", () => {
+    const service = createMockService();
+    render(<App config={mockConfig} logger={createMockLogger()} service={service} />);
+
+    expect(service.start).toHaveBeenCalledWith(expect.any(AbortSignal));
+  });
+
+  it("should abort the signal when unmounted", () => {
+    const service = createMockService();
+    const { unmount } = render(
+      <App config={mockConfig} logger={createMockLogger()} service={service} />,
+    );
+
+    const signal = vi.mocked(service.start).mock.calls[0]?.[0] as AbortSignal;
+    expect(signal.aborted).toBe(false);
+
+    unmount();
+
+    expect(signal.aborted).toBe(true);
+  });
+
+  it("should show connection screen when connecting", () => {
+    const service = createMockService({
+      getConnectionState: vi.fn(() => ({
+        attemptNumber: 1,
+        maxAttempts: 10,
+        port: "/dev/mock",
+        state: "connecting" as const,
+      })),
+    });
+    const { lastFrame } = render(
+      <App config={mockConfig} logger={createMockLogger()} service={service} />,
+    );
+
+    expect(stripFrame(lastFrame())).toContain("Connecting");
+  });
+
+  it("should call restart when R is pressed on connection screen", async () => {
+    const service = createMockService({
+      getConnectionState: vi.fn(() => ({
+        attemptNumber: 1,
+        errorMessage: "err",
+        maxAttempts: 10,
+        port: "/dev/mock",
+        state: "error" as const,
+      })),
+      restart: vi.fn().mockResolvedValue(undefined),
+    });
+    const { stdin } = render(
+      <App config={mockConfig} logger={createMockLogger()} service={service} />,
+    );
+
+    await wait(); // allow useEffect to set screen to "connection"
+    stdin.write("r");
+    await wait();
+
+    expect(service.restart).toHaveBeenCalled();
+  });
+
+  it("should log error when restart fails", async () => {
+    const service = createMockService({
+      getConnectionState: vi.fn(() => ({
+        attemptNumber: 1,
+        errorMessage: "err",
+        maxAttempts: 10,
+        port: "/dev/mock",
+        state: "error" as const,
+      })),
+      restart: vi.fn().mockRejectedValue(new Error("port unavailable")),
+    });
+    const logger = createMockLogger();
+    const { stdin } = render(<App config={mockConfig} logger={logger} service={service} />);
+
+    await wait(); // allow useEffect to set screen to "connection"
+    stdin.write("r");
+    await wait();
+
+    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining("Restart failed"));
+  });
 });

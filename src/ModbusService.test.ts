@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Logger } from "./logger.ts";
 import { ModbusService } from "./ModbusService.ts";
 import type { IModbusClient } from "./modbus/client.ts";
+import type { CalibrationConfig } from "./types.ts";
 
 /** Create a fake IModbusClient with all methods stubbed. */
 const makeFakeClient = (overrides?: Partial<IModbusClient>): IModbusClient => ({
@@ -77,6 +78,149 @@ describe("ModbusService", () => {
     await vi.advanceTimersByTimeAsync(50);
 
     expect(logger.info).toHaveBeenCalledWith(expect.stringContaining("Connected to Modbus device"));
+    await service.stop();
+  });
+
+  it("should call client.disconnect when stop() is called on a connected service", async () => {
+    const logger = makeLogger();
+    const client = makeFakeClient();
+    const service = new ModbusService("/dev/fake", {}, logger, client, 0);
+    service.start();
+    await vi.advanceTimersByTimeAsync(50);
+    await service.stop();
+    expect(client.disconnect).toHaveBeenCalled();
+  });
+
+  it("should reconnect after restart()", async () => {
+    const logger = makeLogger();
+    const client = makeFakeClient();
+    const service = new ModbusService("/dev/fake", {}, logger, client, 0);
+    service.start();
+    await vi.advanceTimersByTimeAsync(50);
+    await service.restart();
+    expect(client.connect).toHaveBeenCalledTimes(2);
+    await service.stop();
+  });
+
+  it("should apply calibration factors to input data", async () => {
+    const config: CalibrationConfig = {
+      inputs: { AI00: { factors: [0, 2], name: "Sensor" } },
+    };
+    const rawValues = Array(16).fill(0);
+    rawValues[0] = 100;
+    const client = makeFakeClient({
+      readInputs: vi.fn().mockResolvedValue(rawValues),
+    });
+    const service = new ModbusService("/dev/fake", config, makeLogger(), client, 0);
+    service.start();
+    await vi.advanceTimersByTimeAsync(250);
+    const inputs = service.getInputData();
+    expect(inputs[0]).toMatchObject({
+      calibrated: 200,
+      channelId: "AI00",
+      name: "Sensor",
+      raw: 100,
+    });
+    await service.stop();
+  });
+
+  it("should apply calibration factors to output data", () => {
+    const config: CalibrationConfig = {
+      outputs: { AO00: { factors: [0, 3], name: "Valve" } },
+    };
+    const service = new ModbusService("/dev/fake", config, makeLogger(), makeFakeClient(), 0);
+    service.setOutput(0, 100);
+    const outputs = service.getOutputData();
+    expect(outputs[0]).toMatchObject({
+      calibrated: 300,
+      channelId: "AO00",
+      name: "Valve",
+      raw: 100,
+    });
+  });
+
+  it("should call onChange listeners on poll and stop calling after unsubscribe", async () => {
+    const logger = makeLogger();
+    const client = makeFakeClient();
+    const service = new ModbusService("/dev/fake", {}, logger, client, 0);
+    const listener = vi.fn();
+    const unsubscribe = service.onChange(listener);
+    service.start();
+    await vi.advanceTimersByTimeAsync(250);
+    expect(listener).toHaveBeenCalled();
+    listener.mockClear();
+    unsubscribe();
+    await vi.advanceTimersByTimeAsync(200);
+    expect(listener).not.toHaveBeenCalled();
+    await service.stop();
+  });
+
+  it("should ignore setOutput calls with out-of-bounds indices", () => {
+    const service = new ModbusService("/dev/fake", {}, makeLogger(), makeFakeClient(), 0);
+    service.setOutput(0, 5000);
+    expect(service.getOutputData()[0].raw).toBe(5000);
+    const snapshot = service.getOutputData().map((d) => d.raw);
+    service.setOutput(-1, 9999);
+    expect(service.getOutputData().map((d) => d.raw)).toEqual(snapshot);
+    service.setOutput(8, 9999);
+    expect(service.getOutputData().map((d) => d.raw)).toEqual(snapshot);
+  });
+
+  it("should update connection state to 'connected' and fire/unsubscribe state listeners", async () => {
+    const logger = makeLogger();
+    const client = makeFakeClient();
+    const service = new ModbusService("/dev/fake", {}, logger, client, 0);
+    const stateListener = vi.fn();
+    const unsubscribe = service.onConnectionStateChange(stateListener);
+    service.start();
+    await vi.advanceTimersByTimeAsync(50);
+    expect(service.getConnectionState()).toMatchObject({ port: "/dev/fake", state: "connected" });
+    expect(stateListener).toHaveBeenCalled();
+    stateListener.mockClear();
+    unsubscribe();
+    await service.restart();
+    expect(stateListener).not.toHaveBeenCalled();
+    await service.stop();
+  });
+
+  it("should stop polling when AbortSignal is aborted", async () => {
+    const logger = makeLogger();
+    const client = makeFakeClient();
+    const service = new ModbusService("/dev/fake", {}, logger, client, 0);
+    const abortController = new AbortController();
+    service.start(abortController.signal);
+    await vi.advanceTimersByTimeAsync(150);
+    abortController.abort();
+    vi.mocked(client.readInputs).mockClear();
+    await vi.advanceTimersByTimeAsync(500);
+    expect(client.readInputs).not.toHaveBeenCalled();
+    await service.stop();
+  });
+
+  it("should call onChange listeners with 16 inputs and 8 outputs on successful poll", async () => {
+    const logger = makeLogger();
+    const client = makeFakeClient();
+    const service = new ModbusService("/dev/fake", {}, logger, client, 0);
+    const listener = vi.fn();
+    service.onChange(listener);
+    service.start();
+    await vi.advanceTimersByTimeAsync(200);
+    expect(listener).toHaveBeenCalled();
+    const firstCall = listener.mock.calls[0];
+    expect(firstCall[0]).toHaveLength(16);
+    expect(firstCall[1]).toHaveLength(8);
+    await service.stop();
+  });
+
+  it("should write changed outputs to client on poll", async () => {
+    const logger = makeLogger();
+    const client = makeFakeClient();
+    const service = new ModbusService("/dev/fake", {}, logger, client, 0);
+    service.start();
+    await vi.advanceTimersByTimeAsync(50);
+    service.setOutput(0, 5000);
+    await vi.advanceTimersByTimeAsync(200);
+    expect(client.writeOutputs).toHaveBeenCalledWith([5000, 0, 0, 0, 0, 0, 0, 0]);
     await service.stop();
   });
 });

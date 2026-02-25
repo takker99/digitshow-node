@@ -14,7 +14,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["src/**/*", "*.json", "*.yaml", "*.yml", ".github/**/*", ".vscode/**/*"]
+    "includes": ["src/**/*", "*.json", "*.yaml", "*.yml", ".github/**/*", ".vscode/**/*", "*"]
   },
   "formatter": {
     "enabled": true,
@@ -38,5 +38,17 @@
     "rules": {
       "recommended": true
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.test.tsx"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useComponentExportOnlyModules": "off"
+          }
+        }
+      }
+    }
+  ]
 }
