@@ -1,6 +1,6 @@
 import { Box, Text } from "ink";
 import { memo, useMemo } from "react";
-import type { ChannelData, DisplayMode } from "../types/index.ts";
+import type { ChannelData, DisplayMode } from "../types.ts";
 
 interface MainScreenProps {
   inputs: ChannelData[];

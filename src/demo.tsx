@@ -4,8 +4,8 @@ import { render } from "ink";
  * Demo script for testing the UI without Modbus hardware
  * This creates a mock service that simulates sensor data
  */
-import type { IModbusService } from "./modbus/service.ts";
-import type { CalibrationConfig, ChannelData } from "./types/index.ts";
+import type { IModbusService } from "./ModbusService.ts";
+import type { CalibrationConfig, ChannelData } from "./types.ts";
 import { App } from "./ui/App.tsx";
 
 // Mock calibration config

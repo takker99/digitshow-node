@@ -1,5 +1,5 @@
 import { Box, Text } from "ink";
-import type { CalibrationConfig } from "../types/index.ts";
+import type { CalibrationConfig } from "../types.ts";
 
 interface ConfigScreenProps {
   config: CalibrationConfig;

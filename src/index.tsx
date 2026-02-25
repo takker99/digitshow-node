@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { render } from "ink";
-import { ModbusService } from "./modbus/service.ts";
-import type { CalibrationConfig } from "./types/index.ts";
+import { ModbusService } from "./ModbusService.ts";
+import type { CalibrationConfig } from "./types.ts";
 import { App } from "./ui/App.tsx";
 import { loadCalibrationConfig } from "./utils/config.ts";
 

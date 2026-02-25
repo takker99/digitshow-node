@@ -1,7 +1,7 @@
-import { applyCalibration } from "../calibration/index.ts";
-import type { CalibrationConfig, ChannelData } from "../types/index.ts";
-import { getChipType, indexToChannelId } from "../utils/config.ts";
-import { ModbusClient } from "./client.ts";
+import ModbusRTU from "modbus-serial";
+import { applyCalibration, int16ToNumber, numberToUint16 } from "./calibration.ts";
+import type { CalibrationConfig, ChannelData } from "./types.ts";
+import { getChipType, indexToChannelId } from "./utils/config.ts";
 
 export interface IModbusService {
   getConnectionStatus(): boolean;
@@ -12,7 +12,14 @@ export interface IModbusService {
 }
 
 export class ModbusService implements IModbusService {
-  #client: ModbusClient;
+  #modbusRTU: ModbusRTU;
+  #port: string;
+  #slaveId: number;
+  #isConnected = false;
+  #reconnectAttempts = 0;
+  #maxReconnectAttempts = 10;
+  #reconnectDelay = 1000; // ms
+
   #config: CalibrationConfig;
   #inputs: number[] = Array(16).fill(0);
   #outputs: number[] = Array(8).fill(0);
@@ -22,12 +29,14 @@ export class ModbusService implements IModbusService {
   #reconnecting = false;
 
   constructor(port: string, config: CalibrationConfig, slaveId = 1) {
-    this.#client = new ModbusClient(port, slaveId);
+    this.#modbusRTU = new ModbusRTU();
+    this.#port = port;
+    this.#slaveId = slaveId;
     this.#config = config;
   }
 
   async start(): Promise<void> {
-    await this.#client.connect();
+    await this.#connect();
 
     // Poll FC04 every 100ms
     this.#intervalId = setInterval(() => {
@@ -40,17 +49,100 @@ export class ModbusService implements IModbusService {
       clearInterval(this.#intervalId);
       this.#intervalId = undefined;
     }
-    await this.#client.disconnect();
+    await this.#disconnect();
+  }
+
+  async #connect(): Promise<void> {
+    while (!this.#isConnected && this.#reconnectAttempts < this.#maxReconnectAttempts) {
+      try {
+        await this.#modbusRTU.connectRTUBuffered(this.#port, {
+          baudRate: 38400,
+        });
+        this.#modbusRTU.setID(this.#slaveId);
+        this.#modbusRTU.setTimeout(1000);
+        this.#isConnected = true;
+        this.#reconnectAttempts = 0;
+        console.log(`Connected to Modbus device on ${this.#port}`);
+      } catch (error) {
+        this.#reconnectAttempts++;
+        if (this.#reconnectAttempts >= this.#maxReconnectAttempts) {
+          throw new Error(
+            `Failed to connect after ${this.#maxReconnectAttempts} attempts: ${error}`,
+          );
+        }
+        console.log(
+          `Connection attempt ${this.#reconnectAttempts}/${this.#maxReconnectAttempts} failed, retrying in ${this.#reconnectDelay}ms...`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, this.#reconnectDelay));
+      }
+    }
+  }
+
+  async #reconnect(): Promise<void> {
+    this.#isConnected = false;
+    await this.#disconnect();
+    await this.#connect();
+  }
+
+  async #disconnect(): Promise<void> {
+    if (this.#isConnected) {
+      this.#modbusRTU.close(() => {});
+      this.#isConnected = false;
+    }
+  }
+
+  /**
+   * Read input registers (FC04)
+   * Reads 16 int16 values
+   */
+  async #readInputs(): Promise<number[]> {
+    if (!this.#isConnected) {
+      throw new Error("Modbus client not connected");
+    }
+
+    try {
+      const result = await this.#modbusRTU.readInputRegisters(0, 16);
+      // Convert to signed int16
+      return result.data.map((value) => int16ToNumber(value));
+    } catch (error) {
+      // Connection lost, mark as disconnected
+      this.#isConnected = false;
+      throw error;
+    }
+  }
+
+  /**
+   * Write multiple registers (FC16)
+   * Writes 8 uint16 values (clamped 0-10000)
+   */
+  async #writeOutputs(values: number[]): Promise<void> {
+    if (!this.#isConnected) {
+      throw new Error("Modbus client not connected");
+    }
+
+    if (values.length !== 8) {
+      throw new Error("Must provide exactly 8 output values");
+    }
+
+    try {
+      // Clamp and convert to uint16
+      const clampedValues = values.map((v) => numberToUint16(v));
+      await this.#modbusRTU.writeRegisters(0, clampedValues);
+    } catch (error) {
+      // Connection lost, mark as disconnected
+      this.#isConnected = false;
+      throw error;
+    }
   }
 
   async #poll(): Promise<void> {
     try {
       // Read inputs (FC04)
-      this.#inputs = await this.#client.readInputs();
+      this.#inputs = await this.#readInputs();
 
       // Check if outputs changed and write if needed (FC16)
       if (this.#hasOutputsChanged()) {
-        await this.#client.writeOutputs(this.#outputs);
+        await this.#writeOutputs(this.#outputs);
         this.#previousOutputs = [...this.#outputs];
       }
 
@@ -66,12 +158,12 @@ export class ModbusService implements IModbusService {
       console.error("Polling error:", error);
 
       // Attempt to reconnect if not already reconnecting
-      if (!this.#reconnecting && !this.#client.getConnectionStatus()) {
+      if (!this.#reconnecting && !this.#isConnected) {
         this.#reconnecting = true;
         console.log("Connection lost, attempting to reconnect...");
 
         try {
-          await this.#client.reconnect();
+          await this.#reconnect();
           console.log("Reconnection successful");
           this.#reconnecting = false;
         } catch (reconnectError) {
@@ -144,6 +236,6 @@ export class ModbusService implements IModbusService {
   }
 
   getConnectionStatus(): boolean {
-    return this.#client.getConnectionStatus();
+    return this.#isConnected;
   }
 }
