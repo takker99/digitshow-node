@@ -67,22 +67,18 @@ export class ConsoleLogger implements ObservableLogger {
 
   info(message: string): void {
     this.#addLog("info", message);
-    console.log(`[INFO] ${message}`);
   }
 
   error(message: string): void {
     this.#addLog("error", message);
-    console.error(`[ERROR] ${message}`);
   }
 
   warn(message: string): void {
     this.#addLog("warn", message);
-    console.warn(`[WARN] ${message}`);
   }
 
   debug(message: string): void {
     this.#addLog("debug", message);
-    console.debug(`[DEBUG] ${message}`);
   }
 
   getLogs(): ReadonlyArray<LogEntry> {
