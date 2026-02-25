@@ -114,7 +114,7 @@ export function App({ service, config, logger }: AppProps) {
       )}
 
       {/* Log panel (shown in bottom of main content) */}
-      {connected && <LogPanel key="log-panel" logger={logger} maxLines={5} />}
+      <LogPanel key="log-panel" logger={logger} maxLines={5} />
     </Box>
   );
 }
