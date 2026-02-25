@@ -35,7 +35,7 @@ export function LogPanel({ logger, maxLines = 10 }: LogPanelProps) {
 
   return (
     <Box borderColor="cyan" borderStyle="round" flexDirection="column" paddingX={1}>
-      <Text dimColor>Logs (last {logs.length}):</Text>
+      <Text dimColor>Logs:</Text>
       {logs.map((entry, idx) => {
         let color: "red" | "yellow" | "gray" | undefined;
         if (entry.level === "error") {

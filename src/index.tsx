@@ -80,9 +80,7 @@ function main() {
     service.start(abortController.signal);
 
     // Render the UI
-    const { waitUntilExit } = render(<App config={config} logger={logger} service={service} />, {
-      incrementalRendering: true,
-    });
+    const { waitUntilExit } = render(<App config={config} logger={logger} service={service} />);
 
     // Handle graceful shutdown
     waitUntilExit().then(async () => {
