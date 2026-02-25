@@ -1,5 +1,5 @@
 import { Box, useApp, useInput } from "ink";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useConnectionStatus, useModbusData } from "../hooks/use-modbus-service.ts";
 import type { ObservableLogger } from "../logger.ts";
 import type { IModbusService } from "../ModbusService.ts";
@@ -18,6 +18,7 @@ interface AppProps {
 
 export function App({ service, config, logger }: AppProps) {
   const { exit } = useApp();
+  const abortRef = useRef(new AbortController());
   const [screen, setScreen] = useState<Screen>("main");
   const [displayMode, setDisplayMode] = useState<DisplayMode>("raw");
 
@@ -27,6 +28,14 @@ export function App({ service, config, logger }: AppProps) {
   // Subscribe to connection status via useSyncExternalStore
   const connectionState = useConnectionStatus(service);
   const connected = connectionState?.state === "connected";
+
+  // Start service and abort on unmount
+  useEffect(() => {
+    service.start(abortRef.current.signal);
+    return () => {
+      abortRef.current.abort();
+    };
+  }, [service]);
 
   // Sync connection state to screen state
   useEffect(() => {
@@ -42,6 +51,7 @@ export function App({ service, config, logger }: AppProps) {
   useInput((input, _key) => {
     // Global navigation
     if (input === "q" || input === "Q") {
+      abortRef.current.abort();
       exit();
       return;
     }

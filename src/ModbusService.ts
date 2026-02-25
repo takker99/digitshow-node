@@ -1,7 +1,8 @@
-import ModbusRTU from "modbus-serial";
-import { applyCalibration, int16ToNumber, numberToUint16 } from "./calibration.ts";
+import { applyCalibration } from "./calibration.ts";
 import type { Logger } from "./logger.ts";
+import type { IModbusClient } from "./modbus/client.ts";
 import type { ConnectionStatusDetail } from "./types/connection.ts";
+import { computeNextConnectionState } from "./types/connection.ts";
 import type { CalibrationConfig, ChannelData } from "./types.ts";
 import { getChipType, indexToChannelId } from "./utils/config.ts";
 
@@ -19,13 +20,12 @@ export interface IModbusService {
 }
 
 export class ModbusService implements IModbusService {
-  #modbusRTU: ModbusRTU;
+  #client: IModbusClient;
   #port: string;
-  #slaveId: number;
   #isConnected = false;
   #reconnectAttempts = 0;
-  #maxReconnectAttempts = 10;
-  #reconnectDelay = 1000; // ms
+  #maxReconnectAttempts: number;
+  #reconnectDelay: number;
 
   #config: CalibrationConfig;
   #inputs: number[] = Array(16).fill(0);
@@ -40,12 +40,20 @@ export class ModbusService implements IModbusService {
   #connectionStateListeners: Set<() => void> = new Set();
   #logger: Logger;
 
-  constructor(port: string, config: CalibrationConfig, logger: Logger, slaveId = 1) {
-    this.#modbusRTU = new ModbusRTU();
+  constructor(
+    port: string,
+    config: CalibrationConfig,
+    logger: Logger,
+    client: IModbusClient,
+    reconnectDelay = 1000,
+    maxReconnectAttempts = 10,
+  ) {
+    this.#client = client;
     this.#port = port;
-    this.#slaveId = slaveId;
     this.#config = config;
     this.#logger = logger;
+    this.#reconnectDelay = reconnectDelay;
+    this.#maxReconnectAttempts = maxReconnectAttempts;
   }
 
   start(signal?: AbortSignal): void {
@@ -63,6 +71,17 @@ export class ModbusService implements IModbusService {
     this.#intervalId = setInterval(() => {
       this.#poll(signal);
     }, 100);
+
+    signal?.addEventListener(
+      "abort",
+      () => {
+        if (this.#intervalId) {
+          clearInterval(this.#intervalId);
+          this.#intervalId = undefined;
+        }
+      },
+      { once: true },
+    );
   }
 
   async stop(): Promise<void> {
@@ -103,11 +122,7 @@ export class ModbusService implements IModbusService {
           type: "connect-attempt",
         });
 
-        await this.#modbusRTU.connectRTUBuffered(this.#port, {
-          baudRate: 38400,
-        });
-        this.#modbusRTU.setID(this.#slaveId);
-        this.#modbusRTU.setTimeout(1000);
+        await this.#client.connect();
         this.#isConnected = true;
         this.#reconnectAttempts = 0;
 
@@ -144,13 +159,14 @@ export class ModbusService implements IModbusService {
 
   async #reconnect(signal?: AbortSignal): Promise<void> {
     this.#isConnected = false;
+    this.#reconnectAttempts = 0;
     await this.#disconnect();
     await this.#connect(signal);
   }
 
   async #disconnect(): Promise<void> {
     if (this.#isConnected) {
-      this.#modbusRTU.close(() => {});
+      await this.#client.disconnect();
       this.#isConnected = false;
     }
   }
@@ -184,19 +200,7 @@ export class ModbusService implements IModbusService {
    * Reads 16 int16 values
    */
   async #readInputs(): Promise<number[]> {
-    if (!this.#isConnected) {
-      throw new Error("Modbus client not connected");
-    }
-
-    try {
-      const result = await this.#modbusRTU.readInputRegisters(0, 16);
-      // Convert to signed int16
-      return result.data.map((value) => int16ToNumber(value));
-    } catch (error) {
-      // Connection lost, mark as disconnected
-      this.#isConnected = false;
-      throw error;
-    }
+    return this.#client.readInputs();
   }
 
   /**
@@ -204,23 +208,7 @@ export class ModbusService implements IModbusService {
    * Writes 8 uint16 values (clamped 0-10000)
    */
   async #writeOutputs(values: number[]): Promise<void> {
-    if (!this.#isConnected) {
-      throw new Error("Modbus client not connected");
-    }
-
-    if (values.length !== 8) {
-      throw new Error("Must provide exactly 8 output values");
-    }
-
-    try {
-      // Clamp and convert to uint16
-      const clampedValues = values.map((v) => numberToUint16(v));
-      await this.#modbusRTU.writeRegisters(0, clampedValues);
-    } catch (error) {
-      // Connection lost, mark as disconnected
-      this.#isConnected = false;
-      throw error;
-    }
+    return this.#client.writeOutputs(values);
   }
 
   async #poll(signal?: AbortSignal): Promise<void> {
@@ -230,6 +218,11 @@ export class ModbusService implements IModbusService {
     }
 
     if (signal?.aborted) {
+      return;
+    }
+
+    // Skip silently during initial connection to avoid spurious "not connected" errors
+    if (this.#connecting) {
       return;
     }
 
@@ -365,40 +358,7 @@ export class ModbusService implements IModbusService {
         }
       | { type: "disconnect" },
   ): void {
-    const prevState = this.#connectionState;
-
-    // Compute next state
-    if (event.type === "connect-attempt") {
-      this.#connectionState = {
-        attemptNumber: event.attempt,
-        maxAttempts: event.maxAttempts,
-        port: event.port,
-        state: "connecting",
-      };
-    } else if (event.type === "connect-success") {
-      this.#connectionState = {
-        attemptNumber: 0,
-        maxAttempts: 0,
-        port: event.port,
-        state: "connected",
-      };
-    } else if (event.type === "connect-error") {
-      this.#connectionState = {
-        attemptNumber: event.attempt,
-        errorMessage: event.errorMessage,
-        maxAttempts: event.maxAttempts,
-        port: event.port,
-        retryDelayMs: event.retryDelayMs,
-        state: "error",
-      };
-    } else if (event.type === "disconnect") {
-      this.#connectionState = {
-        attemptNumber: 0,
-        maxAttempts: 0,
-        port: prevState?.port ?? "unknown",
-        state: "connecting",
-      };
-    }
+    this.#connectionState = computeNextConnectionState(this.#connectionState, event);
 
     // Notify listeners
     this.#connectionStateListeners.forEach((listener) => {

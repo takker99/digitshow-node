@@ -101,6 +101,14 @@ describe("App", () => {
     expect(service.onChange).toHaveBeenCalledOnce();
   });
 
+  it("should call start on mount", () => {
+    const service = createMockService();
+    const logger = createMockLogger();
+    render(<App config={mockConfig} logger={logger} service={service} />);
+
+    expect(service.start).toHaveBeenCalledOnce();
+  });
+
   it("should unsubscribe from onChange on unmount", () => {
     const unsubscribe = vi.fn();
     const service = createMockService({ onChange: vi.fn(() => unsubscribe) });

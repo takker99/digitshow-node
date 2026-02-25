@@ -2,6 +2,7 @@
 import { render } from "ink";
 import { ConsoleLogger } from "./logger.ts";
 import { ModbusService } from "./ModbusService.ts";
+import { ModbusRtuClient } from "./modbus/client.ts";
 import type { CalibrationConfig } from "./types.ts";
 import { App } from "./ui/App.tsx";
 import { loadCalibrationConfig } from "./utils/config.ts";
@@ -67,32 +68,15 @@ if (configPath) {
 
 // Create logger and service
 const logger = new ConsoleLogger();
-const service = new ModbusService(port, config, logger, slaveId);
+const client = new ModbusRtuClient(port, slaveId);
+const service = new ModbusService(port, config, logger, client);
 
-// Create abort controller for graceful shutdown
-const abortController = new AbortController();
-
-function main() {
-  try {
-    console.log(`Starting ModbusService on ${port}...`);
-
-    // Start service without awaiting
-    service.start(abortController.signal);
-
-    // Render the UI
-    const { waitUntilExit } = render(<App config={config} logger={logger} service={service} />);
-
-    // Handle graceful shutdown
-    waitUntilExit().then(async () => {
-      console.log("\nShutting down...");
-      abortController.abort();
-      await service.stop();
-      process.exit(0);
-    });
-  } catch (error) {
-    console.error("Fatal error:", error);
-    process.exit(1);
-  }
+try {
+  const { waitUntilExit } = render(<App config={config} logger={logger} service={service} />);
+  await waitUntilExit();
+} catch (error) {
+  console.error("Fatal error:", error);
+} finally {
+  await service.stop();
+  process.exit(0);
 }
-
-main();
