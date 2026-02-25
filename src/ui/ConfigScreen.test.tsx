@@ -59,4 +59,16 @@ describe("ConfigScreen", () => {
     expect(output).toContain("[O]utput");
     expect(output).toContain("[Q]uit");
   });
+
+  it("should show Unnamed when calibration has no name", () => {
+    const config: CalibrationConfig = {
+      inputs: { AI00: { factors: [0, 1] } },
+      outputs: { AO00: { factors: [0, 1] } },
+    };
+
+    const { lastFrame } = render(<ConfigScreen config={config} />);
+
+    const output = stripFrame(lastFrame());
+    expect(output).toContain("Unnamed");
+  });
 });

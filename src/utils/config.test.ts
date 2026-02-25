@@ -1,5 +1,14 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { getChipType, loadCalibrationConfig } from "../utils/config.ts";
+import {
+  channelIdToIndex,
+  getChipType,
+  indexToChannelId,
+  isOutputChannel,
+  loadCalibrationConfig,
+} from "../utils/config.ts";
 
 describe("Configuration Utils", () => {
   describe("getChipType", () => {
@@ -35,10 +44,57 @@ describe("Configuration Utils", () => {
       expect(config.inputs?.AI00?.name).toBe("Moisture Sensor 1");
     });
 
-    it("should validate config schema", () => {
-      expect(() => {
-        loadCalibrationConfig("calibration.example.yaml");
-      }).not.toThrow();
+    it("should throw for invalid file path", () => {
+      expect(() => loadCalibrationConfig("nonexistent.yaml")).toThrow();
+    });
+
+    it("should throw for invalid YAML schema", () => {
+      const tmp = path.join(os.tmpdir(), "invalid-schema.yaml");
+      fs.writeFileSync(tmp, "inputs:\n  AI00:\n    name: 123\n    factors: not-an-array\n");
+      try {
+        expect(() => loadCalibrationConfig(tmp)).toThrow();
+      } finally {
+        fs.unlinkSync(tmp);
+      }
+    });
+  });
+
+  describe("indexToChannelId", () => {
+    it("should return AO-prefixed ID for output channels", () => {
+      expect(indexToChannelId(0, true)).toBe("AO00");
+      expect(indexToChannelId(5, true)).toBe("AO05");
+      expect(indexToChannelId(16, true)).toBe("AO16");
+    });
+
+    it("should return AI-prefixed ID for input channels", () => {
+      expect(indexToChannelId(0, false)).toBe("AI00");
+      expect(indexToChannelId(8, false)).toBe("AI08");
+      expect(indexToChannelId(15, false)).toBe("AI15");
+    });
+  });
+
+  describe("channelIdToIndex", () => {
+    it("should parse numeric index from a valid channel ID", () => {
+      expect(channelIdToIndex("AI00")).toBe(0);
+      expect(channelIdToIndex("AO05")).toBe(5);
+      expect(channelIdToIndex("AO16")).toBe(16);
+    });
+
+    it("should throw for invalid channel ID format", () => {
+      expect(() => channelIdToIndex("invalid")).toThrow("Invalid channel ID format: invalid");
+      expect(() => channelIdToIndex("A1")).toThrow();
+    });
+  });
+
+  describe("isOutputChannel", () => {
+    it("should return true for AO-prefixed channel IDs", () => {
+      expect(isOutputChannel("AO00")).toBe(true);
+      expect(isOutputChannel("AO16")).toBe(true);
+    });
+
+    it("should return false for non-AO channel IDs", () => {
+      expect(isOutputChannel("AI00")).toBe(false);
+      expect(isOutputChannel("HX00")).toBe(false);
     });
   });
 });

@@ -44,6 +44,12 @@ describe("computeNextConnectionState", () => {
     expect(state.port).toBe("/dev/test");
   });
 
+  it("uses 'unknown' port when disconnecting from undefined state", () => {
+    const state = computeNextConnectionState(undefined, { type: "disconnect" });
+    expect(state.port).toBe("unknown");
+    expect(state.state).toBe("connecting");
+  });
+
   it("preserves port from previous state on disconnect", () => {
     const state = computeNextConnectionState(
       { attemptNumber: 0, maxAttempts: 0, port: "/dev/ttyUSB0", state: "connected" },
