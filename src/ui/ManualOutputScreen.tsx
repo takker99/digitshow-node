@@ -7,6 +7,7 @@ interface ManualOutputScreenProps {
   onSetOutput: (index: number, value: number) => void;
 }
 
+/** Manual control screen for setting output channel values. */
 export function ManualOutputScreen({ outputs, onSetOutput }: ManualOutputScreenProps) {
   const [selectedChannel, setSelectedChannel] = useState(0);
   const [inputValue, setInputValue] = useState<number | null>(null);

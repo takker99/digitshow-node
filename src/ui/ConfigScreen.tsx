@@ -5,6 +5,7 @@ interface ConfigScreenProps {
   config: CalibrationConfig;
 }
 
+/** Configuration screen showing loaded calibration settings. */
 export function ConfigScreen({ config }: ConfigScreenProps) {
   return (
     <Box flexDirection="column" padding={1}>

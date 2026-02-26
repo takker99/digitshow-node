@@ -6,6 +6,7 @@
 /** Log entry type */
 export type LogLevel = "info" | "error" | "warn" | "debug";
 
+/** Single immutable log record entry. */
 export interface LogEntry {
   level: LogLevel;
   message: string;

@@ -37,6 +37,7 @@ const InputChannelList = memo(function InputChannelList({
   );
 });
 
+/** Main monitoring screen for input and output channel values. */
 export function MainScreen({ inputs, outputs, displayMode, connected }: MainScreenProps) {
   const hx711Inputs = useMemo(
     () => sortByIndex(inputs.filter((input) => normalizeChip(input.chip) === "hx711")),
