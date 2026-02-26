@@ -24,28 +24,28 @@ export interface Logger {
   /**
    * Log an info message.
    * @param message Message to log.
-   * @returns Nothing.
+   * @returns {void}
    */
   info(message: string): void;
 
   /**
    * Log an error message.
    * @param message Message to log.
-   * @returns Nothing.
+   * @returns {void}
    */
   error(message: string): void;
 
   /**
    * Log a warning message.
    * @param message Message to log.
-   * @returns Nothing.
+   * @returns {void}
    */
   warn(message: string): void;
 
   /**
    * Log a debug message.
    * @param message Message to log.
-   * @returns Nothing.
+   * @returns {void}
    */
   debug(message: string): void;
 }
@@ -83,7 +83,7 @@ export class ConsoleLogger implements ObservableLogger {
   /**
    * Log an info message.
    * @param message Message to log.
-   * @returns Nothing.
+   * @returns {void}
    */
   info(message: string): void {
     this.#addLog("info", message);
@@ -92,7 +92,7 @@ export class ConsoleLogger implements ObservableLogger {
   /**
    * Log an error message.
    * @param message Message to log.
-   * @returns Nothing.
+   * @returns {void}
    */
   error(message: string): void {
     this.#addLog("error", message);
@@ -101,7 +101,7 @@ export class ConsoleLogger implements ObservableLogger {
   /**
    * Log a warning message.
    * @param message Message to log.
-   * @returns Nothing.
+   * @returns {void}
    */
   warn(message: string): void {
     this.#addLog("warn", message);
@@ -110,7 +110,7 @@ export class ConsoleLogger implements ObservableLogger {
   /**
    * Log a debug message.
    * @param message Message to log.
-   * @returns Nothing.
+   * @returns {void}
    */
   debug(message: string): void {
     this.#addLog("debug", message);

@@ -26,13 +26,13 @@ export interface IModbusService {
    * Set one output register value.
    * @param index Output channel index (0-7).
    * @param value Raw output value.
-   * @returns Nothing.
+   * @returns {void}
    */
   setOutput(index: number, value: number): void;
   /**
    * Start connection and polling loop.
    * @param signal Optional abort signal.
-   * @returns Nothing.
+   * @returns {void}
    */
   start(signal?: AbortSignal): void;
   /** @returns Promise resolved after polling stops and disconnect completes. */
@@ -104,7 +104,7 @@ export class ModbusService implements IModbusService {
   /**
    * Start connection attempts and polling.
    * @param signal Optional abort signal.
-   * @returns Nothing.
+   * @returns {void}
    */
   start(signal?: AbortSignal): void {
     // Start connection attempt in background without awaiting
@@ -387,7 +387,7 @@ export class ModbusService implements IModbusService {
    * Set one output value in memory.
    * @param index Output channel index (0-7).
    * @param value Raw value to apply.
-   * @returns Nothing.
+   * @returns {void}
    */
   setOutput(index: number, value: number): void {
     if (index >= 0 && index < 8) {
