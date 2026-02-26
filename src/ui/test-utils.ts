@@ -4,6 +4,8 @@ import { stripVTControlCharacters } from "node:util";
  * Strip VT (Virtual Terminal) control characters from the output of lastFrame().
  * This is necessary because ink-testing-library may include ANSI escape sequences
  * when running in a TTY environment (e.g., VS Code Vitest extension).
+ * @param output Frame output from ink-testing-library.
+ * @returns Plain text output without terminal control characters.
  */
 export const stripFrame = (output: string | undefined): string =>
   output ? stripVTControlCharacters(output) : "";

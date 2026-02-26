@@ -7,7 +7,11 @@ interface ManualOutputScreenProps {
   onSetOutput: (index: number, value: number) => void;
 }
 
-/** Manual control screen for setting output channel values. */
+/**
+ * Manual control screen for setting output channel values.
+ * @param props Screen props with output list and setter callback.
+ * @returns Rendered Ink component tree.
+ */
 export function ManualOutputScreen({ outputs, onSetOutput }: ManualOutputScreenProps) {
   const [selectedChannel, setSelectedChannel] = useState(0);
   const [inputValue, setInputValue] = useState<number | null>(null);

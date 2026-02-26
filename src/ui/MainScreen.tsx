@@ -37,7 +37,11 @@ const InputChannelList = memo(function InputChannelList({
   );
 });
 
-/** Main monitoring screen for input and output channel values. */
+/**
+ * Main monitoring screen for input and output channel values.
+ * @param props Screen props with channels, mode, and connection state.
+ * @returns Rendered Ink component tree.
+ */
 export function MainScreen({ inputs, outputs, displayMode, connected }: MainScreenProps) {
   const hx711Inputs = useMemo(
     () => sortByIndex(inputs.filter((input) => normalizeChip(input.chip) === "hx711")),

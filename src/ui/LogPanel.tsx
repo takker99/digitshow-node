@@ -19,6 +19,8 @@ interface LogPanelProps {
  * Renders recent log entries from logger.
  * Shows most recent logs up to maxLines.
  * Color-codes by log level: info (default), error (red), warn (yellow), debug (gray).
+ * @param props Component props with logger and display line limit.
+ * @returns Rendered Ink component tree.
  */
 export function LogPanel({ logger, maxLines = 10 }: LogPanelProps) {
   const snapshotRef = useRef(logger.getLogs().slice(-maxLines));

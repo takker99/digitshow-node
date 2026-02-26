@@ -6,19 +6,56 @@ import { computeNextConnectionState } from "./types/connection.ts";
 import type { CalibrationConfig, ChannelData } from "./types.ts";
 import { getChipType, indexToChannelId } from "./utils/config.ts";
 
+/**
+ * Public contract for Modbus service used by UI and hooks.
+ */
 export interface IModbusService {
+  /** @returns True when Modbus client is connected. */
   getConnectionStatus(): boolean;
+  /** @returns Current input channel snapshot. */
   getInputData(): ChannelData[];
+  /** @returns Current output channel snapshot. */
   getOutputData(): ChannelData[];
+  /**
+   * Subscribe to input/output updates.
+   * @param listener Callback invoked on data changes.
+   * @returns Unsubscribe function.
+   */
   onChange(listener: (inputs: ChannelData[], outputs: ChannelData[]) => void): () => void;
+  /**
+   * Set one output register value.
+   * @param index Output channel index (0-7).
+   * @param value Raw output value.
+   * @returns Nothing.
+   */
   setOutput(index: number, value: number): void;
+  /**
+   * Start connection and polling loop.
+   * @param signal Optional abort signal.
+   * @returns Nothing.
+   */
   start(signal?: AbortSignal): void;
+  /** @returns Promise resolved after polling stops and disconnect completes. */
   stop(): Promise<void>;
+  /**
+   * Restart connection and polling loop.
+   * @param signal Optional abort signal.
+   * @returns Promise resolved after restart completes.
+   */
   restart(signal?: AbortSignal): Promise<void>;
+  /**
+   * Subscribe to connection state updates.
+   * @param listener Callback invoked when state changes.
+   * @returns Unsubscribe function.
+   */
   onConnectionStateChange(listener: () => void): () => void;
+  /** @returns Current connection detail state or undefined if not initialized. */
   getConnectionState(): ConnectionStatusDetail | undefined;
 }
 
+/**
+ * Modbus service implementation with polling, reconnect, and calibration support.
+ */
 export class ModbusService implements IModbusService {
   #client: IModbusClient;
   #port: string;
@@ -40,6 +77,14 @@ export class ModbusService implements IModbusService {
   #connectionStateListeners: Set<() => void> = new Set();
   #logger: Logger;
 
+  /**
+   * @param port Serial port path.
+   * @param config Calibration configuration.
+   * @param logger Logger implementation.
+   * @param client Modbus client dependency.
+   * @param reconnectDelay Delay between reconnect attempts in milliseconds.
+   * @param maxReconnectAttempts Maximum number of reconnect attempts.
+   */
   constructor(
     port: string,
     config: CalibrationConfig,
@@ -56,6 +101,11 @@ export class ModbusService implements IModbusService {
     this.#maxReconnectAttempts = maxReconnectAttempts;
   }
 
+  /**
+   * Start connection attempts and polling.
+   * @param signal Optional abort signal.
+   * @returns Nothing.
+   */
   start(signal?: AbortSignal): void {
     // Start connection attempt in background without awaiting
     this.#connecting = true;
@@ -84,6 +134,10 @@ export class ModbusService implements IModbusService {
     );
   }
 
+  /**
+   * Stop polling and disconnect client.
+   * @returns Promise resolved when disconnected.
+   */
   async stop(): Promise<void> {
     if (this.#intervalId) {
       clearInterval(this.#intervalId);
@@ -92,6 +146,11 @@ export class ModbusService implements IModbusService {
     await this.#disconnect();
   }
 
+  /**
+   * Restart the connection and polling loop.
+   * @param signal Optional abort signal.
+   * @returns Promise resolved when restart completes.
+   */
   async restart(signal?: AbortSignal): Promise<void> {
     await this.stop();
     this.#connecting = true;
@@ -280,6 +339,10 @@ export class ModbusService implements IModbusService {
     }
   }
 
+  /**
+   * Get calibrated input channel data.
+   * @returns Input channel list.
+   */
   getInputData(): ChannelData[] {
     return this.#inputs.map((raw, index) => {
       const chip = getChipType(index);
@@ -298,6 +361,10 @@ export class ModbusService implements IModbusService {
     });
   }
 
+  /**
+   * Get calibrated output channel data.
+   * @returns Output channel list.
+   */
   getOutputData(): ChannelData[] {
     return this.#outputs.map((raw, index) => {
       const chip = "GP8403" as const;
@@ -316,12 +383,23 @@ export class ModbusService implements IModbusService {
     });
   }
 
+  /**
+   * Set one output value in memory.
+   * @param index Output channel index (0-7).
+   * @param value Raw value to apply.
+   * @returns Nothing.
+   */
   setOutput(index: number, value: number): void {
     if (index >= 0 && index < 8) {
       this.#outputs[index] = value;
     }
   }
 
+  /**
+   * Subscribe to input/output data changes.
+   * @param listener Callback invoked when polled data changes.
+   * @returns Unsubscribe function.
+   */
   onChange(listener: (inputs: ChannelData[], outputs: ChannelData[]) => void): () => void {
     this.#listeners.push(listener);
     return () => {
@@ -329,10 +407,19 @@ export class ModbusService implements IModbusService {
     };
   }
 
+  /**
+   * Get binary connection status.
+   * @returns True when connected.
+   */
   getConnectionStatus(): boolean {
     return this.#isConnected;
   }
 
+  /**
+   * Subscribe to connection state changes.
+   * @param listener Callback invoked when state changes.
+   * @returns Unsubscribe function.
+   */
   onConnectionStateChange(listener: () => void): () => void {
     this.#connectionStateListeners.add(listener);
     return () => {
@@ -340,6 +427,10 @@ export class ModbusService implements IModbusService {
     };
   }
 
+  /**
+   * Get detailed connection state for UI.
+   * @returns Current connection state detail.
+   */
   getConnectionState(): ConnectionStatusDetail | undefined {
     return this.#connectionState;
   }

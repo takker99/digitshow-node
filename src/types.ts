@@ -30,11 +30,17 @@ export type ChipType = "HX711" | "ADS1115" | "GP8403";
 
 /** Data model for a single channel value and metadata. */
 export interface ChannelData {
+  /** Channel identifier such as AI00 or AO00. */
   channelId: string;
+  /** Zero-based channel index. */
   index: number;
+  /** Raw integer value read from or written to Modbus. */
   raw: number;
+  /** Calibrated value derived from polynomial factors. */
   calibrated: number;
+  /** Physical chip type associated with this channel. */
   chip: ChipType;
+  /** Optional channel display name from configuration. */
   name?: string;
 }
 

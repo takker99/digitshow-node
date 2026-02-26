@@ -5,7 +5,11 @@ interface ConfigScreenProps {
   config: CalibrationConfig;
 }
 
-/** Configuration screen showing loaded calibration settings. */
+/**
+ * Configuration screen showing loaded calibration settings.
+ * @param props Screen props containing calibration config.
+ * @returns Rendered Ink component tree.
+ */
 export function ConfigScreen({ config }: ConfigScreenProps) {
   return (
     <Box flexDirection="column" padding={1}>
