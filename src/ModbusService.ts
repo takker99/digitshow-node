@@ -10,11 +10,20 @@ import { getChipType, indexToChannelId } from "./utils/config.ts";
  * Public contract for Modbus service used by UI and hooks.
  */
 export interface IModbusService {
-  /** @returns True when Modbus client is connected. */
+  /**
+   * Get current Modbus connection status.
+   * @returns True when Modbus client is connected.
+   */
   getConnectionStatus(): boolean;
-  /** @returns Current input channel snapshot. */
+  /**
+   * Get the latest input channel data snapshot.
+   * @returns Current input channel snapshot.
+   */
   getInputData(): ChannelData[];
-  /** @returns Current output channel snapshot. */
+  /**
+   * Get the latest output channel data snapshot.
+   * @returns Current output channel snapshot.
+   */
   getOutputData(): ChannelData[];
   /**
    * Subscribe to input/output updates.
@@ -35,7 +44,10 @@ export interface IModbusService {
    * @returns {void}
    */
   start(signal?: AbortSignal): void;
-  /** @returns Promise resolved after polling stops and disconnect completes. */
+  /**
+   * Stop polling and disconnect from the Modbus device.
+   * @returns Promise resolved after polling stops and disconnect completes.
+   */
   stop(): Promise<void>;
   /**
    * Restart connection and polling loop.
@@ -49,7 +61,10 @@ export interface IModbusService {
    * @returns Unsubscribe function.
    */
   onConnectionStateChange(listener: () => void): () => void;
-  /** @returns Current connection detail state or undefined if not initialized. */
+  /**
+   * Get the latest detailed connection state.
+   * @returns Current connection detail state or undefined if not initialized.
+   */
   getConnectionState(): ConnectionStatusDetail | undefined;
 }
 

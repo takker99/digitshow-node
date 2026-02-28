@@ -6,18 +6,31 @@ import { int16ToNumber, numberToUint16 } from "../calibration.ts";
  * Enables dependency injection and testing without real hardware.
  */
 export interface IModbusClient {
-  /** @returns Promise resolved when connection is established. */
+  /**
+   * Establish connection to the Modbus device.
+   * @returns Promise resolved when connection is established.
+   */
   connect(): Promise<void>;
-  /** @returns Promise resolving to 16 input register values. */
+  /**
+   * Read 16 input register values from the device.
+   * @returns Promise resolving to 16 input register values.
+   */
   readInputs(): Promise<number[]>;
   /**
+   * Write output register values to the device.
    * @param values Eight output register values.
    * @returns Promise resolved after values are written.
    */
   writeOutputs(values: number[]): Promise<void>;
-  /** @returns Promise resolved after connection is closed. */
+  /**
+   * Close the Modbus connection.
+   * @returns Promise resolved after connection is closed.
+   */
   disconnect(): Promise<void>;
-  /** @returns True if currently connected. */
+  /**
+   * Check whether the Modbus client is connected.
+   * @returns True if currently connected.
+   */
   isConnected(): boolean;
 }
 

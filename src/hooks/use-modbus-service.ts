@@ -36,9 +36,9 @@ export const useModbusData = (
 
 /**
  * Subscribe to connection status changes.
- * Returns derived connected boolean (true when state is "connected").
+ * Returns the latest connection status detail from the Modbus service.
  * @param service Modbus service instance.
- * @returns Current connection state detail.
+ * @returns Current connection state detail or undefined when no state is available.
  */
 export const useConnectionStatus = (
   service: IModbusService,
