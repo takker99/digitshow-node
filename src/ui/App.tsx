@@ -11,11 +11,19 @@ import { MainScreen } from "./MainScreen.tsx";
 import { ManualOutputScreen } from "./ManualOutputScreen.tsx";
 
 interface AppProps {
+  /** Modbus service facade for data and control. */
   service: IModbusService;
+  /** Loaded calibration configuration. */
   config: CalibrationConfig;
+  /** Observable logger used by log panel and restart errors. */
   logger: ObservableLogger;
 }
 
+/**
+ * Root Ink application component.
+ * @param props Application dependencies and configuration.
+ * @returns Rendered application layout.
+ */
 export function App({ service, config, logger }: AppProps) {
   const { exit } = useApp();
   const abortRef = useRef(new AbortController());

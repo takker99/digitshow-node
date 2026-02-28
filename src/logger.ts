@@ -6,9 +6,13 @@
 /** Log entry type */
 export type LogLevel = "info" | "error" | "warn" | "debug";
 
+/** Single log record entry. */
 export interface LogEntry {
+  /** Log severity level. */
   level: LogLevel;
+  /** Human-readable log message. */
   message: string;
+  /** Timestamp when the entry was created. */
   timestamp: Date;
 }
 
@@ -18,22 +22,30 @@ export interface LogEntry {
  */
 export interface Logger {
   /**
-   * Log an info message
+   * Log an info message.
+   * @param message Message to log.
+   * @returns {void}
    */
   info(message: string): void;
 
   /**
-   * Log an error message
+   * Log an error message.
+   * @param message Message to log.
+   * @returns {void}
    */
   error(message: string): void;
 
   /**
-   * Log a warning message
+   * Log a warning message.
+   * @param message Message to log.
+   * @returns {void}
    */
   warn(message: string): void;
 
   /**
-   * Log a debug message
+   * Log a debug message.
+   * @param message Message to log.
+   * @returns {void}
    */
   debug(message: string): void;
 }
@@ -46,12 +58,15 @@ export interface ObservableLogger extends Logger {
   /**
    * Get current logs snapshot.
    * Returns immutable copy to prevent external mutation.
+   * @returns Read-only list of log entries.
    */
   getLogs(): ReadonlyArray<LogEntry>;
 
   /**
    * Subscribe to log changes.
    * Returns unsubscribe function.
+   * @param listener Callback invoked when logs change.
+   * @returns Function to unsubscribe the listener.
    */
   subscribe(listener: () => void): () => void;
 }
@@ -65,27 +80,56 @@ export class ConsoleLogger implements ObservableLogger {
   #subscribers: Set<() => void> = new Set();
   #maxLogs = 100; // Keep most recent 100 logs
 
+  /**
+   * Log an info message.
+   * @param message Message to log.
+   * @returns {void}
+   */
   info(message: string): void {
     this.#addLog("info", message);
   }
 
+  /**
+   * Log an error message.
+   * @param message Message to log.
+   * @returns {void}
+   */
   error(message: string): void {
     this.#addLog("error", message);
   }
 
+  /**
+   * Log a warning message.
+   * @param message Message to log.
+   * @returns {void}
+   */
   warn(message: string): void {
     this.#addLog("warn", message);
   }
 
+  /**
+   * Log a debug message.
+   * @param message Message to log.
+   * @returns {void}
+   */
   debug(message: string): void {
     this.#addLog("debug", message);
   }
 
+  /**
+   * Get current logs snapshot.
+   * @returns Read-only copy of stored log entries.
+   */
   getLogs(): ReadonlyArray<LogEntry> {
     // Return immutable copy of logs
     return [...this.#logs];
   }
 
+  /**
+   * Subscribe to log change notifications.
+   * @param listener Callback invoked after new entries are added.
+   * @returns Function that removes the listener.
+   */
   subscribe(listener: () => void): () => void {
     this.#subscribers.add(listener);
 

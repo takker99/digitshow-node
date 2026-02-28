@@ -14,6 +14,8 @@ interface ConnectionScreenProps {
 /**
  * Renders connection status screen.
  * Shows spinner during connecting, success message when connected, error message if failed.
+ * @param props Screen props with current connection state.
+ * @returns Rendered Ink component tree.
  */
 export function ConnectionScreen({ connectionState }: ConnectionScreenProps) {
   return (

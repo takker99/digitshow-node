@@ -12,6 +12,8 @@ import type { ChannelData } from "../types.ts";
 /**
  * Subscribe to Modbus input/output data changes.
  * Returns latest data snapshot using useSyncExternalStore.
+ * @param service Modbus service instance.
+ * @returns Current inputs and outputs snapshot.
  */
 export const useModbusData = (
   service: IModbusService,
@@ -34,7 +36,9 @@ export const useModbusData = (
 
 /**
  * Subscribe to connection status changes.
- * Returns derived connected boolean (true when state is "connected").
+ * Returns the latest connection status detail from the Modbus service.
+ * @param service Modbus service instance.
+ * @returns Current connection state detail or undefined when no state is available.
  */
 export const useConnectionStatus = (
   service: IModbusService,
@@ -55,6 +59,8 @@ export const useConnectionStatus = (
 /**
  * Subscribe to logger log entries.
  * Returns current logs array snapshot.
+ * @param logger Observable logger instance.
+ * @returns Read-only array of log entries.
  */
 export const useLogs = (
   logger: ObservableLogger,

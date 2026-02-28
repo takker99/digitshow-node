@@ -6,15 +6,31 @@ import { int16ToNumber, numberToUint16 } from "../calibration.ts";
  * Enables dependency injection and testing without real hardware.
  */
 export interface IModbusClient {
-  /** Establish connection to the Modbus device. */
+  /**
+   * Establish connection to the Modbus device.
+   * @returns Promise resolved when connection is established.
+   */
   connect(): Promise<void>;
-  /** Read 16 input register values. */
+  /**
+   * Read 16 input register values from the device.
+   * @returns Promise resolving to 16 input register values.
+   */
   readInputs(): Promise<number[]>;
-  /** Write 8 output register values. */
+  /**
+   * Write output register values to the device.
+   * @param values Eight output register values.
+   * @returns Promise resolved after values are written.
+   */
   writeOutputs(values: number[]): Promise<void>;
-  /** Close the connection. */
+  /**
+   * Close the Modbus connection.
+   * @returns Promise resolved after connection is closed.
+   */
   disconnect(): Promise<void>;
-  /** Returns true if currently connected. */
+  /**
+   * Check whether the Modbus client is connected.
+   * @returns True if currently connected.
+   */
   isConnected(): boolean;
 }
 
@@ -38,6 +54,10 @@ export class ModbusRtuClient implements IModbusClient {
     this.#slaveId = slaveId;
   }
 
+  /**
+   * Connect to Modbus RTU device.
+   * @returns Promise resolved when connected.
+   */
   async connect(): Promise<void> {
     await this.#modbusRTU.connectRTUBuffered(this.#port, { baudRate: 38400 });
     this.#modbusRTU.setID(this.#slaveId);
@@ -45,6 +65,11 @@ export class ModbusRtuClient implements IModbusClient {
     this.#connected = true;
   }
 
+  /**
+   * Read 16 input registers and convert to signed values.
+   * @returns Promise resolving to input values.
+   * @throws {Error} If client is not connected or read operation fails.
+   */
   async readInputs(): Promise<number[]> {
     if (!this.#connected) throw new Error("Modbus client not connected");
     try {
@@ -56,6 +81,12 @@ export class ModbusRtuClient implements IModbusClient {
     }
   }
 
+  /**
+   * Write 8 output registers after clamping to device range.
+   * @param values Output values.
+   * @returns Promise resolved when write completes.
+   * @throws {Error} If client is not connected, values length is invalid, or write fails.
+   */
   async writeOutputs(values: number[]): Promise<void> {
     if (!this.#connected) throw new Error("Modbus client not connected");
     if (values.length !== 8) throw new Error("Must provide exactly 8 output values");
@@ -68,6 +99,10 @@ export class ModbusRtuClient implements IModbusClient {
     }
   }
 
+  /**
+   * Close Modbus RTU connection.
+   * @returns Promise resolved when disconnect handling completes.
+   */
   async disconnect(): Promise<void> {
     if (this.#connected) {
       this.#modbusRTU.close(() => {});
@@ -75,6 +110,10 @@ export class ModbusRtuClient implements IModbusClient {
     }
   }
 
+  /**
+   * Report client connection state.
+   * @returns True when the client is connected.
+   */
   isConnected(): boolean {
     return this.#connected;
   }
